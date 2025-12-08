@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 const services = [
   {
@@ -52,6 +55,20 @@ const services = [
 ];
 
 export default function Home() {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Check if user is admin
+    fetch("/api/auth/verify")
+      .then((res) => res.json())
+      .then((data) => {
+        setIsAdmin(data.success && data.authenticated);
+      })
+      .catch(() => {
+        setIsAdmin(false);
+      });
+  }, []);
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -72,12 +89,14 @@ export default function Home() {
               >
                 Get Started
               </Link>
-              <Link
-                href="/dashboard"
-                className="px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-semibold shadow-lg hover:shadow-xl border border-slate-200 dark:border-slate-700 transform hover:scale-105 transition-all duration-200"
-              >
-                Agent Dashboard
-              </Link>
+              {isAdmin && (
+                <Link
+                  href="/dashboard"
+                  className="px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-semibold shadow-lg hover:shadow-xl border border-slate-200 dark:border-slate-700 transform hover:scale-105 transition-all duration-200"
+                >
+                  Agent Dashboard
+                </Link>
+              )}
             </div>
           </div>
 

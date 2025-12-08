@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAgents, addAgent, updateAgent } from "@/lib/agents-storage";
 
-export async function GET() {
-  const agents = await getAgents();
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const includeHidden = searchParams.get('includeHidden') === 'true';
+  const agents = await getAgents(includeHidden);
   return NextResponse.json({ agents });
 }
 

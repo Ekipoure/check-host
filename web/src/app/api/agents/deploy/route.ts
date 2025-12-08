@@ -451,6 +451,7 @@ export async function POST(request: NextRequest) {
       agentCity,
       agentIp,
       agentAsn,
+      countryEmoji,
       // Network Configuration
       port,
       host,
@@ -563,6 +564,7 @@ export async function POST(request: NextRequest) {
       agentCity,
       agentIp,
       agentAsn,
+      countryEmoji,
     };
 
     await addAgent(agent);

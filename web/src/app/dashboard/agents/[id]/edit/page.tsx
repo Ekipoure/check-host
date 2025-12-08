@@ -17,6 +17,7 @@ interface Agent {
   agentCity?: string;
   agentIp?: string;
   agentAsn?: string;
+  countryEmoji?: string;
   username?: string;
   targetPath?: string;
   deploymentMethod?: "github" | "upload";
@@ -43,6 +44,7 @@ export default function EditAgentPage() {
     agentCity: "",
     agentIp: "",
     agentAsn: "",
+    countryEmoji: "",
     username: "",
     targetPath: "",
     deploymentMethod: "github" as "github" | "upload",
@@ -71,6 +73,7 @@ export default function EditAgentPage() {
           agentCity: data.agent.agentCity || "",
           agentIp: data.agent.agentIp || "",
           agentAsn: data.agent.agentAsn || "",
+          countryEmoji: data.agent.countryEmoji || "",
           username: data.agent.username || "",
           targetPath: data.agent.targetPath || "",
           deploymentMethod: data.agent.deploymentMethod || "github",
@@ -111,6 +114,7 @@ export default function EditAgentPage() {
           agentCity: formData.agentCity,
           agentIp: formData.agentIp,
           agentAsn: formData.agentAsn,
+          countryEmoji: formData.countryEmoji,
           username: formData.username,
           targetPath: formData.targetPath,
           deploymentMethod: formData.deploymentMethod,
@@ -315,6 +319,21 @@ export default function EditAgentPage() {
                     onChange={(e) => setFormData({ ...formData, agentAsn: e.target.value })}
                     className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Country Emoji / Logo
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.countryEmoji}
+                    onChange={(e) => setFormData({ ...formData, countryEmoji: e.target.value })}
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                    placeholder="🇳🇱 or 🏳️ or custom emoji/image"
+                  />
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Enter an emoji, flag, or custom logo to display for this country
+                  </p>
                 </div>
               </div>
             </div>

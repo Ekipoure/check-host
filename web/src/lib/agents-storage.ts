@@ -19,9 +19,11 @@ export interface Agent {
   agentCity?: string;
   agentIp?: string;
   agentAsn?: string;
+  countryEmoji?: string;
   deploymentPath?: string;
   createdAt?: string;
   updatedAt?: string;
+  hidden?: boolean;
   // Additional fields for deployment
   username?: string;
   targetPath?: string;
@@ -53,9 +55,11 @@ function mapRowToAgent(row: any): Agent {
     agentCity: row.agent_city,
     agentIp: row.agent_ip,
     agentAsn: row.agent_asn,
+    countryEmoji: row.country_emoji,
     deploymentPath: row.deployment_path,
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : undefined,
     updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : undefined,
+    hidden: row.hidden || false,
     username: row.username,
     targetPath: row.target_path,
     deploymentMethod: row.deployment_method,
@@ -73,10 +77,13 @@ function mapRowToLog(row: any): DeploymentLog {
   };
 }
 
-export async function getAgents(): Promise<Agent[]> {
+export async function getAgents(includeHidden: boolean = false): Promise<Agent[]> {
   const client = await pool.connect();
   try {
-    const result = await client.query('SELECT * FROM agents ORDER BY created_at DESC');
+    const query = includeHidden 
+      ? 'SELECT * FROM agents ORDER BY created_at DESC'
+      : 'SELECT * FROM agents WHERE hidden = false OR hidden IS NULL ORDER BY created_at DESC';
+    const result = await client.query(query);
     return result.rows.map(mapRowToAgent);
   } finally {
     client.release();
@@ -103,10 +110,10 @@ export async function addAgent(agent: Agent): Promise<void> {
       INSERT INTO agents (
         id, name, server_ip, location, status, last_seen, port, host,
         agent_location, agent_country_code, agent_country, agent_city,
-        agent_ip, agent_asn, deployment_path, username, target_path,
-        deployment_method, repository_url, created_at, updated_at
+        agent_ip, agent_asn, country_emoji, deployment_path, username, target_path,
+        deployment_method, repository_url, hidden, created_at, updated_at
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
       )
     `, [
       agent.id,
@@ -123,11 +130,13 @@ export async function addAgent(agent: Agent): Promise<void> {
       agent.agentCity || null,
       agent.agentIp || null,
       agent.agentAsn || null,
+      agent.countryEmoji || null,
       agent.deploymentPath || null,
       agent.username || null,
       agent.targetPath || null,
       agent.deploymentMethod || null,
       agent.repositoryUrl || null,
+      agent.hidden || false,
     ]);
   } finally {
     client.release();
@@ -202,6 +211,10 @@ export async function updateAgent(agentId: string, updates: Partial<Agent>): Pro
       fields.push(`agent_asn = $${paramIndex++}`);
       values.push(updates.agentAsn);
     }
+    if (updates.countryEmoji !== undefined) {
+      fields.push(`country_emoji = $${paramIndex++}`);
+      values.push(updates.countryEmoji);
+    }
     if (updates.deploymentPath !== undefined) {
       fields.push(`deployment_path = $${paramIndex++}`);
       values.push(updates.deploymentPath);
@@ -221,6 +234,10 @@ export async function updateAgent(agentId: string, updates: Partial<Agent>): Pro
     if (updates.repositoryUrl !== undefined) {
       fields.push(`repository_url = $${paramIndex++}`);
       values.push(updates.repositoryUrl);
+    }
+    if (updates.hidden !== undefined) {
+      fields.push(`hidden = $${paramIndex++}`);
+      values.push(updates.hidden);
     }
 
     if (fields.length === 0) {

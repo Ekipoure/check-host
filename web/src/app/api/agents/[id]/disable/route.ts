@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAgentById, updateAgent } from "@/lib/agents-storage";
-import { NodeSSH } from "node-ssh";
 
 export async function POST(
   request: NextRequest,
@@ -17,43 +16,16 @@ export async function POST(
       );
     }
 
-    // Stop PM2 process via SSH
-    const ssh = new NodeSSH();
-    try {
-      await ssh.connect({
-        host: agent.serverIp,
-        username: agent.username || 'root',
-        password: '', // Password should not be stored in database
-        readyTimeout: 10000,
-      });
+    // Only toggle visibility (hidden field)
+    await updateAgent(id, { hidden: true, updatedAt: new Date().toISOString() });
 
-      if (agent.deploymentPath) {
-        await ssh.execCommand("pm2 stop check-host-worker", {
-          cwd: agent.deploymentPath,
-        });
-      } else {
-        await ssh.execCommand("pm2 stop check-host-worker");
-      }
-
-      ssh.dispose();
-      await updateAgent(id, { status: "disabled", updatedAt: new Date().toISOString() });
-
-      return NextResponse.json({
-        success: true,
-        message: "Agent disabled successfully",
-      });
-    } catch (error: any) {
-      ssh.dispose();
-      await updateAgent(id, { status: "disabled", updatedAt: new Date().toISOString() });
-      return NextResponse.json({
-        success: true,
-        message: "Agent marked as disabled (PM2 stop may have failed)",
-        warning: error.message,
-      });
-    }
+    return NextResponse.json({
+      success: true,
+      message: "Agent hidden successfully",
+    });
   } catch (error: any) {
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to disable agent" },
+      { success: false, error: error.message || "Failed to hide agent" },
       { status: 500 }
     );
   }

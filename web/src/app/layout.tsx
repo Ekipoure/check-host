@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
+import BannerDisplay from "@/components/BannerDisplay";
+import { getBanners } from "@/components/BannerServer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -13,16 +15,19 @@ export const metadata: Metadata = {
   description: "Online tool for checking availability of websites, servers, hosts and IP addresses",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const banners = await getBanners();
+
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} antialiased bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 min-h-screen`}>
+      <body className={`${inter.variable} antialiased bg-white dark:bg-slate-900`}>
+        <BannerDisplay initialBanners={banners} />
         <Navigation />
-        <main className="pt-20">
+        <main>
           {children}
         </main>
       </body>

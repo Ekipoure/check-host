@@ -123,6 +123,7 @@ export async function callAllAgents(
           agentCountryCode: agent.agentCountryCode,
           agentCountry: agent.agentCountry,
           agentCity: agent.agentCity,
+          countryEmoji: agent.countryEmoji,
         },
         result,
       };

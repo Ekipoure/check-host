@@ -401,6 +401,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         return {
           location,
           countryCode,
+          countryEmoji: agent.countryEmoji,
           result: `${pingData.successCount} / ${pingData.totalCount}`,
           rtt: pingData.successCount > 0 
             ? `${pingData.minTime.toFixed(1)} / ${pingData.avgTime.toFixed(1)} / ${pingData.maxTime.toFixed(1)} ms`
@@ -437,6 +438,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         return {
           location,
           countryCode,
+          countryEmoji: agent.countryEmoji,
           result: httpData.success ? "✓ OK" : "✗ Error",
           time: httpData.time > 0 ? `${(httpData.time * 1000).toFixed(0)} ms` : "—",
           statusCode: httpData.statusCode || "—",
@@ -467,6 +469,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         return {
           location,
           countryCode,
+          countryEmoji: agent.countryEmoji,
           result: portData.success ? "✓ OK" : (portData.error || "✗ Error"),
           time: portData.time ? `${(portData.time * 1000).toFixed(0)} ms` : "—",
           ip: portData.address || "—",
@@ -496,6 +499,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         return {
           location,
           countryCode,
+          countryEmoji: agent.countryEmoji,
           aRecords: dnsData.aRecords.length > 0 ? dnsData.aRecords.join(", ") : "—",
           aaaaRecords: dnsData.aaaaRecords.length > 0 ? dnsData.aaaaRecords.join(", ") : "—",
           ttl: dnsData.ttl ? `${dnsData.ttl} s` : "—",
@@ -547,7 +551,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <span className="text-xl mr-2" role="img" aria-label={row.countryCode}>
-                        {getCountryFlag(row.countryCode)}
+                        {row.countryEmoji || getCountryFlag(row.countryCode)}
                       </span>
                       <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
                         {row.location}

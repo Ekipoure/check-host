@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface Agent {
   id: string;
@@ -9,6 +10,7 @@ interface Agent {
   location: "internal" | "external";
   status: "online" | "offline" | "installing" | "disabled";
   lastSeen?: string;
+  hidden?: boolean;
 }
 
 interface DeploymentLog {
@@ -18,7 +20,129 @@ interface DeploymentLog {
   type: "info" | "success" | "error" | "warning";
 }
 
+interface EditAdminFormProps {
+  admin: Admin;
+  currentAdminId: number;
+  onSave: (username?: string, password?: string) => void;
+  onCancel: () => void;
+}
+
+function EditAdminForm({ admin, currentAdminId, onSave, onCancel }: EditAdminFormProps) {
+  const [editUsername, setEditUsername] = useState(admin.username);
+  const [editPassword, setEditPassword] = useState("");
+  const [editConfirmPassword, setEditConfirmPassword] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (editPassword && editPassword !== editConfirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    if (editPassword && editPassword.length < 6) {
+      alert("Password must be at least 6 characters");
+      return;
+    }
+
+    const newUsername = editUsername !== admin.username ? editUsername : undefined;
+    const newPassword = editPassword || undefined;
+    
+    onSave(newUsername, newPassword);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div>
+        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+          Username
+        </label>
+        <input
+          type="text"
+          required
+          value={editUsername}
+          onChange={(e) => setEditUsername(e.target.value)}
+          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+            New Password
+          </label>
+          <input
+            type="password"
+            value={editPassword}
+            onChange={(e) => setEditPassword(e.target.value)}
+            className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+            placeholder="Leave empty to keep"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+            Confirm Password
+          </label>
+          <input
+            type="password"
+            value={editConfirmPassword}
+            onChange={(e) => setEditConfirmPassword(e.target.value)}
+            className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+          />
+        </div>
+      </div>
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-3 py-1.5 text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="px-3 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
+        >
+          Save
+        </button>
+      </div>
+    </form>
+  );
+}
+
+interface Admin {
+  id: number;
+  username: string;
+  created_at: string;
+  updated_at: string;
+}
+
+type TabType = "agents" | "admins" | "banners";
+
+interface PartialLink {
+  text: string;
+  url: string;
+  color?: string;
+}
+
+interface Banner {
+  id: number;
+  text: string;
+  text_color: string;
+  background_color: string;
+  has_background: boolean;
+  font_size: number;
+  animation_duration: number;
+  link_url: string | null;
+  partial_links: PartialLink[] | null;
+  position: "top" | "bottom";
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export default function DashboardPage() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<TabType>("agents");
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(false);
   const [showInstallForm, setShowInstallForm] = useState(false);
@@ -27,6 +151,30 @@ export default function DashboardPage() {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
   const [notificationType, setNotificationType] = useState<"success" | "error">("success");
+  const [currentAdmin, setCurrentAdmin] = useState<{ id: number; username: string } | null>(null);
+  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [editingAdmin, setEditingAdmin] = useState<Admin | null>(null);
+  const [showAddAdminForm, setShowAddAdminForm] = useState(false);
+  const [adminFormData, setAdminFormData] = useState({
+    username: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [showAddBannerForm, setShowAddBannerForm] = useState(false);
+  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
+  const [bannerFormData, setBannerFormData] = useState({
+    text: "",
+    textColor: "#000000",
+    backgroundColor: "#ffffff",
+    hasBackground: true,
+    fontSize: 16,
+    animationDuration: 20,
+    linkUrl: "",
+    partialLinks: [] as PartialLink[],
+    position: "top" as "top" | "bottom",
+    isActive: true,
+  });
   const [formData, setFormData] = useState({
     name: "",
     serverIp: "",
@@ -36,37 +184,76 @@ export default function DashboardPage() {
     targetPath: "",
     deploymentMethod: "github" as "github" | "upload",
     repositoryUrl: "",
-    // Agent Configuration
     agentLocation: "",
     agentCountryCode: "",
     agentCountry: "",
     agentCity: "",
     agentIp: "",
     agentAsn: "",
-    // Network Configuration
+    countryEmoji: "",
     port: "8000",
     host: "0.0.0.0",
-    // Security
     apiKey: "",
-    // API Keys (optional)
     ipapiKey: "",
     ipgeolocationApiKey: "",
     ipinfoApiKey: "",
-    // Other
     nodeEnv: "production",
-    // Advanced (for manual env vars)
     envVars: "",
   });
 
   useEffect(() => {
-    loadAgents();
-  }, []);
+    fetch("/api/auth/verify")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.success || !data.authenticated) {
+          router.push("/login");
+        } else {
+          setCurrentAdmin(data.admin);
+          loadAgents();
+          loadAdmins();
+          loadBanners();
+        }
+      })
+      .catch(() => {
+        router.push("/login");
+      });
+  }, [router]);
 
-  // Real-time logs using polling (more reliable than EventSource)
+  const loadAdmins = async () => {
+    try {
+      const response = await fetch("/api/auth/admins");
+      const data = await response.json();
+      if (data.success) {
+        setAdmins(data.admins);
+      }
+    } catch (error) {
+      console.error("Error loading admins:", error);
+    }
+  };
+
+  const loadBanners = async () => {
+    try {
+      const response = await fetch("/api/banners?admin=true");
+      const data = await response.json();
+      if (data.success) {
+        setBanners(data.banners);
+      }
+    } catch (error) {
+      console.error("Error loading banners:", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   useEffect(() => {
     if (!deployingAgentId) {
-      // When deployment stops, keep the logs visible (don't clear them)
-      // Only clear if user explicitly closes the log panel
       return;
     }
 
@@ -76,7 +263,6 @@ export default function DashboardPage() {
         const response = await fetch(`/api/agents/${deployingAgentId}/logs`);
         const data = await response.json();
         if (data.success && data.logs) {
-          // Always update logs, even if count hasn't changed (in case of errors)
           setDeploymentLogs(data.logs);
           if (data.logs.length > lastLogCount) {
             lastLogCount = data.logs.length;
@@ -85,9 +271,8 @@ export default function DashboardPage() {
       } catch (error) {
         console.error("Error fetching logs:", error);
       }
-    }, 500); // Poll every 500ms for real-time feel
+    }, 500);
 
-    // Also poll for agent status
     const statusInterval = setInterval(async () => {
       try {
         const statusResponse = await fetch("/api/agents");
@@ -99,12 +284,11 @@ export default function DashboardPage() {
             clearInterval(statusInterval);
             setDeployingAgentId(null);
             
-            // Show notification
             if (agent.status === "online") {
-              setNotificationMessage(`✅ Agent "${agent.name}" deployed successfully!`);
+              setNotificationMessage(`Agent "${agent.name}" deployed successfully`);
               setNotificationType("success");
             } else {
-              setNotificationMessage(`❌ Agent "${agent.name}" deployment failed.`);
+              setNotificationMessage(`Agent "${agent.name}" deployment failed`);
               setNotificationType("error");
             }
             setShowNotification(true);
@@ -115,7 +299,7 @@ export default function DashboardPage() {
       } catch (error) {
         console.error("Error checking status:", error);
       }
-    }, 2000); // Check status every 2 seconds
+    }, 2000);
 
     return () => {
       clearInterval(logsInterval);
@@ -123,18 +307,17 @@ export default function DashboardPage() {
     };
   }, [deployingAgentId]);
 
-  // Auto-refresh agent status
   useEffect(() => {
     const interval = setInterval(() => {
       loadAgents();
-    }, 10000); // Refresh every 10 seconds
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
 
   const loadAgents = async () => {
     try {
-      const response = await fetch("/api/agents");
+      const response = await fetch("/api/agents?includeHidden=true");
       const data = await response.json();
       setAgents(data.agents || []);
     } catch (error) {
@@ -145,8 +328,6 @@ export default function DashboardPage() {
   const handleInstall = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Only clear logs for new deployment, not for viewing existing failed deployments
-    // Logs will be loaded from server when deployment starts
 
     try {
       const response = await fetch("/api/agents/deploy", {
@@ -177,6 +358,7 @@ export default function DashboardPage() {
           agentCity: "",
           agentIp: "",
           agentAsn: "",
+          countryEmoji: "",
           port: "8000",
           host: "0.0.0.0",
           apiKey: "",
@@ -188,14 +370,14 @@ export default function DashboardPage() {
         });
         loadAgents();
       } else {
-        setNotificationMessage(`❌ Error: ${data.error || "Failed to deploy agent"}`);
+        setNotificationMessage(`Error: ${data.error || "Failed to deploy agent"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error deploying agent:", error);
-      setNotificationMessage("❌ Failed to deploy agent");
+      setNotificationMessage("Failed to deploy agent");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -205,7 +387,7 @@ export default function DashboardPage() {
   };
 
   const handleUninstall = async (agentId: string) => {
-    if (!confirm(`Are you sure you want to uninstall agent ${agentId}?`)) {
+    if (!confirm(`Uninstall agent ${agentId}?`)) {
       return;
     }
 
@@ -217,20 +399,20 @@ export default function DashboardPage() {
       const data = await response.json();
       
       if (data.success) {
-        setNotificationMessage("✅ Agent uninstalled successfully!");
+        setNotificationMessage("Agent uninstalled");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
         loadAgents();
       } else {
-        setNotificationMessage(`❌ Error: ${data.error || "Failed to uninstall agent"}`);
+        setNotificationMessage(`Error: ${data.error || "Failed to uninstall"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error uninstalling agent:", error);
-      setNotificationMessage("❌ Failed to uninstall agent");
+      setNotificationMessage("Failed to uninstall");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -246,20 +428,20 @@ export default function DashboardPage() {
       const data = await response.json();
       
       if (data.success) {
-        setNotificationMessage("✅ Agent disabled successfully!");
+        setNotificationMessage("Agent hidden");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
         loadAgents();
       } else {
-        setNotificationMessage(`❌ Error: ${data.error || "Failed to disable agent"}`);
+        setNotificationMessage(`Error: ${data.error || "Failed to hide"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error disabling agent:", error);
-      setNotificationMessage("❌ Failed to disable agent");
+      setNotificationMessage("Failed to disable");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -275,20 +457,20 @@ export default function DashboardPage() {
       const data = await response.json();
       
       if (data.success) {
-        setNotificationMessage("✅ Agent enabled successfully!");
+        setNotificationMessage("Agent shown");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
         loadAgents();
       } else {
-        setNotificationMessage(`❌ Error: ${data.error || "Failed to enable agent"}`);
+        setNotificationMessage(`Error: ${data.error || "Failed to show"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error enabling agent:", error);
-      setNotificationMessage("❌ Failed to enable agent");
+      setNotificationMessage("Failed to enable");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -307,673 +489,1172 @@ export default function DashboardPage() {
     }
   };
 
+  const handleAddAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (adminFormData.password !== adminFormData.confirmPassword) {
+      setNotificationMessage("Passwords do not match");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+      return;
+    }
+
+    if (adminFormData.password.length < 6) {
+      setNotificationMessage("Password must be at least 6 characters");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/auth/admins", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: adminFormData.username,
+          password: adminFormData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotificationMessage("Admin added");
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        setShowAddAdminForm(false);
+        setAdminFormData({ username: "", password: "", confirmPassword: "" });
+        loadAdmins();
+      } else {
+        setNotificationMessage(`Error: ${data.error || "Failed to add admin"}`);
+        setNotificationType("error");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error adding admin:", error);
+      setNotificationMessage("Failed to add admin");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+  };
+
+  const handleUpdateAdmin = async (adminId: number, username?: string, password?: string) => {
+    try {
+      const response = await fetch("/api/auth/admins", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: adminId,
+          username,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotificationMessage("Admin updated");
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        setEditingAdmin(null);
+        loadAdmins();
+        if (currentAdmin && currentAdmin.id === adminId) {
+          fetch("/api/auth/verify")
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success && data.authenticated) {
+                setCurrentAdmin(data.admin);
+              }
+            });
+        }
+      } else {
+        setNotificationMessage(`Error: ${data.error || "Failed to update"}`);
+        setNotificationType("error");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error updating admin:", error);
+      setNotificationMessage("Failed to update");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+  };
+
+  const handleDeleteAdmin = async (adminId: number) => {
+    if (!confirm("Delete this admin?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/auth/admins?id=${adminId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotificationMessage("Admin deleted");
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        loadAdmins();
+      } else {
+        setNotificationMessage(`Error: ${data.error || "Failed to delete"}`);
+        setNotificationType("error");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error deleting admin:", error);
+      setNotificationMessage("Failed to delete");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+  };
+
+  const handleAddBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!bannerFormData.text.trim()) {
+      setNotificationMessage("Text is required");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/banners", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bannerFormData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotificationMessage("Banner added");
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        setShowAddBannerForm(false);
+        setBannerFormData({
+          text: "",
+          textColor: "#000000",
+          backgroundColor: "#ffffff",
+          hasBackground: true,
+          fontSize: 16,
+          animationDuration: 20,
+          linkUrl: "",
+          partialLinks: [],
+          position: "top",
+          isActive: true,
+        });
+        loadBanners();
+      } else {
+        setNotificationMessage(`Error: ${data.error || "Failed to add banner"}`);
+        setNotificationType("error");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error adding banner:", error);
+      setNotificationMessage("Failed to add banner");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+  };
+
+  const handleUpdateBanner = async (bannerId: number) => {
+    if (!bannerFormData.text.trim()) {
+      setNotificationMessage("Text is required");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/banners/${bannerId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bannerFormData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotificationMessage("Banner updated");
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        setEditingBanner(null);
+        setBannerFormData({
+          text: "",
+          textColor: "#000000",
+          backgroundColor: "#ffffff",
+          hasBackground: true,
+          fontSize: 16,
+          animationDuration: 20,
+          linkUrl: "",
+          partialLinks: [],
+          position: "top",
+          isActive: true,
+        });
+        loadBanners();
+      } else {
+        setNotificationMessage(`Error: ${data.error || "Failed to update"}`);
+        setNotificationType("error");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error updating banner:", error);
+      setNotificationMessage("Failed to update");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+  };
+
+  const handleDeleteBanner = async (bannerId: number) => {
+    if (!confirm("Delete this banner?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/banners/${bannerId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotificationMessage("Banner deleted");
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        loadBanners();
+      } else {
+        setNotificationMessage(`Error: ${data.error || "Failed to delete"}`);
+        setNotificationType("error");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error deleting banner:", error);
+      setNotificationMessage("Failed to delete");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+  };
+
+  const handleToggleBannerActive = async (bannerId: number, isActive: boolean) => {
+    try {
+      const response = await fetch(`/api/banners/${bannerId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isActive: !isActive }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotificationMessage(`Banner ${!isActive ? "enabled" : "disabled"}`);
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        loadBanners();
+      } else {
+        setNotificationMessage(`Error: ${data.error || "Failed to update"}`);
+        setNotificationType("error");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error toggling banner:", error);
+      setNotificationMessage("Failed to update");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+  };
+
+  if (!currentAdmin) {
+    return (
+      <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 4rem)' }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div className="py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-                Agent Dashboard
-              </h1>
-              <p className="text-slate-600 dark:text-slate-400">
-                Manage and monitor your network monitoring agents
-              </p>
-            </div>
-            <button
-              onClick={() => setShowInstallForm(!showInstallForm)}
-              className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-            >
-              {showInstallForm ? "Cancel" : "+ Deploy Agent"}
-            </button>
+        {/* Minimal Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-200">Dashboard</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {currentAdmin.username}
+            </p>
           </div>
         </div>
 
-        {/* Deploy Form */}
-        {showInstallForm && (
-          <div className="mb-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700 animate-fade-in">
-            <h2 className="text-2xl font-bold mb-6 text-slate-800 dark:text-slate-200">
-              Deploy Agent
-            </h2>
-            <form onSubmit={handleInstall} className="space-y-6">
-              {/* Agent Name */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Agent Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="My Production Agent"
-                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                />
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  A unique name to identify this agent
-                </p>
-              </div>
 
-              {/* Server IP Address */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Server IP Address *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.serverIp}
-                  onChange={(e) => setFormData({ ...formData, serverIp: e.target.value })}
-                  placeholder="192.168.1.100 or your-server.com"
-                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                />
-              </div>
-
-              {/* Server Location */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Server Location
-                </label>
-                <div className="flex gap-2 mb-2">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, serverLocation: "internal" })}
-                    className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
-                      formData.serverLocation === "internal"
-                        ? "bg-indigo-500 text-white shadow-lg"
-                        : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
-                    }`}
-                  >
-                    <span className="mr-2">🏠</span>
-                    Internal
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, serverLocation: "external" })}
-                    className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
-                      formData.serverLocation === "external"
-                        ? "bg-indigo-500 text-white shadow-lg"
-                        : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
-                    }`}
-                  >
-                    <span className="mr-2">🌐</span>
-                    External
-                  </button>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {formData.serverLocation === "internal"
-                    ? "Server located within your internal network"
-                    : "Server located on the public internet"}
-                </p>
-              </div>
-
-              {/* Username and Password */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Username *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    placeholder="root"
-                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Password *
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Enter server password"
-                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                  />
-                </div>
-              </div>
-
-              {/* Target Path */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Target Path (Optional - defaults to ~/agent)
-                </label>
-                <input
-                  type="text"
-                  value={formData.targetPath}
-                  onChange={(e) => setFormData({ ...formData, targetPath: e.target.value })}
-                  placeholder="~/agent (will use home directory if empty)"
-                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                />
-              </div>
-
-              {/* Deployment Method */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Deployment Method
-                </label>
-                <div className="space-y-2">
-                  <label className="flex items-center p-4 border border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                    <input
-                      type="radio"
-                      name="deploymentMethod"
-                      value="github"
-                      checked={formData.deploymentMethod === "github"}
-                      onChange={(e) => setFormData({ ...formData, deploymentMethod: e.target.value as "github" | "upload" })}
-                      className="mr-3"
-                    />
-                    <span className="text-slate-700 dark:text-slate-300">Clone from GitHub Repository</span>
-                  </label>
-                  <label className="flex items-center p-4 border border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                    <input
-                      type="radio"
-                      name="deploymentMethod"
-                      value="upload"
-                      checked={formData.deploymentMethod === "upload"}
-                      onChange={(e) => setFormData({ ...formData, deploymentMethod: e.target.value as "github" | "upload" })}
-                      className="mr-3"
-                    />
-                    <span className="text-slate-700 dark:text-slate-300">Upload Project ZIP File</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Repository URL */}
-              {formData.deploymentMethod === "github" && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Repository URL *
-                  </label>
-                  <input
-                    type="url"
-                    required={formData.deploymentMethod === "github"}
-                    value={formData.repositoryUrl}
-                    onChange={(e) => setFormData({ ...formData, repositoryUrl: e.target.value })}
-                    placeholder="https://github.com/username/repository.git"
-                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                  />
-                </div>
-              )}
-
-              {/* Agent Configuration Section */}
-              <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
-                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
-                  Agent Configuration
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* AGENT_LOCATION */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Agent Location
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.agentLocation}
-                      onChange={(e) => setFormData({ ...formData, agentLocation: e.target.value })}
-                      placeholder="US East"
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-
-                  {/* AGENT_COUNTRY_CODE */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Country Code
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.agentCountryCode}
-                      onChange={(e) => setFormData({ ...formData, agentCountryCode: e.target.value })}
-                      placeholder="US"
-                      maxLength={2}
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-
-                  {/* AGENT_COUNTRY */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Country
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.agentCountry}
-                      onChange={(e) => setFormData({ ...formData, agentCountry: e.target.value })}
-                      placeholder="United States"
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-
-                  {/* AGENT_CITY */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.agentCity}
-                      onChange={(e) => setFormData({ ...formData, agentCity: e.target.value })}
-                      placeholder="New York"
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-
-                  {/* AGENT_IP */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Agent IP Address
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.agentIp}
-                      onChange={(e) => setFormData({ ...formData, agentIp: e.target.value })}
-                      placeholder="192.168.1.100"
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-
-                  {/* AGENT_ASN */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      ASN Number
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.agentAsn}
-                      onChange={(e) => setFormData({ ...formData, agentAsn: e.target.value })}
-                      placeholder="AS12345"
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Network Configuration Section */}
-              <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
-                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
-                  Network Configuration
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* PORT */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Port *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      value={formData.port}
-                      onChange={(e) => setFormData({ ...formData, port: e.target.value })}
-                      placeholder="8000"
-                      min="1"
-                      max="65535"
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                    />
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      Default: 8000
-                    </p>
-                  </div>
-
-                  {/* HOST */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Host *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.host}
-                      onChange={(e) => setFormData({ ...formData, host: e.target.value })}
-                      placeholder="0.0.0.0"
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                    />
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      Default: 0.0.0.0 (all interfaces)
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Security Configuration Section */}
-              <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
-                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
-                  Security Configuration
-                </h3>
-                
-                {/* API_KEY */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    API Key
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.apiKey}
-                    onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                    placeholder="your-secret-key-here"
-                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                  />
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Optional - برای امنیت توصیه می‌شود. باید با WORKER_API_KEY در وب‌سایت یکسان باشد.
-                  </p>
-                </div>
-              </div>
-
-              {/* API Keys Section (Optional) */}
-              <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
-                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
-                  API Keys (Optional - برای IP Geolocation)
-                </h3>
-                
-                <div className="space-y-4">
-                  {/* IPAPI_KEY */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      IPAPI Key
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.ipapiKey}
-                      onChange={(e) => setFormData({ ...formData, ipapiKey: e.target.value })}
-                      placeholder="ipapi.io API key"
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-
-                  {/* IPGEOLOCATION_API_KEY */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      IPGeolocation API Key
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.ipgeolocationApiKey}
-                      onChange={(e) => setFormData({ ...formData, ipgeolocationApiKey: e.target.value })}
-                      placeholder="ipgeolocation.io API key"
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-
-                  {/* IPINFO_API_KEY */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      IPInfo API Key
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.ipinfoApiKey}
-                      onChange={(e) => setFormData({ ...formData, ipinfoApiKey: e.target.value })}
-                      placeholder="ipinfo.io API key"
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Other Configuration Section */}
-              <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
-                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
-                  Other Configuration
-                </h3>
-                
-                {/* NODE_ENV */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Node Environment
-                  </label>
-                  <select
-                    value={formData.nodeEnv}
-                    onChange={(e) => setFormData({ ...formData, nodeEnv: e.target.value })}
-                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                  >
-                    <option value="production">Production</option>
-                    <option value="development">Development</option>
-                    <option value="test">Test</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Advanced Environment Variables (Optional) */}
-              <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
-                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
-                  Advanced Configuration
-                </h3>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Additional Environment Variables (Optional)
-                  </label>
-                  <textarea
-                    value={formData.envVars}
-                    onChange={(e) => setFormData({ ...formData, envVars: e.target.value })}
-                    placeholder="CUSTOM_VAR=value&#10;ANOTHER_VAR=value"
-                    rows={4}
-                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 font-mono text-sm"
-                  />
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    برای متغیرهای اضافی که در فیلدهای بالا وجود ندارند. هر خط به صورت KEY=value
-                  </p>
-                  <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <p className="text-xs text-blue-800 dark:text-blue-300 font-medium mb-1">💡 نکته:</p>
-                    <p className="text-xs text-blue-700 dark:text-blue-400">
-                      <strong>AGENT_ID</strong> به صورت خودکار توسط سیستم تولید می‌شود و نیازی به وارد کردن نیست.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex justify-end pt-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? "Deploying..." : "Deploy Agent"}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* Deployment Logs Section */}
+        {/* Deployment Logs */}
         {deployingAgentId && (
-          <div className="mb-8 bg-slate-900 dark:bg-slate-950 rounded-2xl shadow-xl border border-slate-700 overflow-hidden">
-            <div className="p-4 border-b border-slate-700 bg-slate-800 dark:bg-slate-900">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-slate-200 flex items-center">
-                  <span className="mr-2">📋</span>
-                  Deployment Logs
-                  {deploymentLogs.length > 0 && (
-                    <span className="ml-2 text-sm text-slate-400">({deploymentLogs.length} entries)</span>
-                  )}
-                </h3>
-                <div className="flex items-center gap-2">
-                  {deploymentLogs.length > 0 && (
-                    <button
-                      onClick={async () => {
-                        if (deployingAgentId) {
-                          try {
-                            const response = await fetch(`/api/agents/${deployingAgentId}/logs`);
-                            const data = await response.json();
-                            if (data.success && data.logs) {
-                              setDeploymentLogs(data.logs);
-                            }
-                          } catch (error) {
-                            console.error("Error refreshing logs:", error);
-                          }
-                        }
-                      }}
-                      className="text-slate-400 hover:text-slate-200 transition-colors"
-                      title="Refresh logs"
-                    >
-                      ↻
-                    </button>
-                  )}
-                  <button
-                    onClick={() => {
-                      // Only clear logs when user explicitly closes the panel
-                      setDeployingAgentId(null);
-                      setDeploymentLogs([]);
-                    }}
-                    className="text-slate-400 hover:text-slate-200 transition-colors"
-                    title="Close logs panel"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
+          <div className="mb-6 bg-slate-900 dark:bg-slate-950 rounded-lg border border-slate-700 overflow-hidden">
+            <div className="p-3 border-b border-slate-700 bg-slate-800 flex items-center justify-between">
+              <h3 className="text-xs font-semibold text-slate-200">Deployment Logs</h3>
+              <button
+                onClick={() => {
+                  setDeployingAgentId(null);
+                  setDeploymentLogs([]);
+                }}
+                className="text-slate-400 hover:text-slate-200 text-xs"
+              >
+                ✕
+              </button>
             </div>
-            <div className="p-4 max-h-96 overflow-y-auto font-mono text-sm bg-slate-950">
+            <div className="p-3 max-h-64 overflow-y-auto font-mono text-xs bg-slate-950">
               {deploymentLogs.length === 0 ? (
-                <div className="text-slate-400 animate-pulse">Waiting for logs...</div>
+                <div className="text-slate-400">Waiting for logs...</div>
               ) : (
                 <div className="space-y-1">
                   {deploymentLogs.map((log, index) => (
                     <div
                       key={index}
-                      className={`flex items-start py-1 ${
-                        log.type === "error"
-                          ? "text-red-400"
-                          : log.type === "success"
-                          ? "text-green-400"
-                          : log.type === "warning"
-                          ? "text-yellow-400"
-                          : "text-slate-300"
+                      className={`${
+                        log.type === "error" ? "text-red-400" :
+                        log.type === "success" ? "text-green-400" :
+                        log.type === "warning" ? "text-yellow-400" :
+                        "text-slate-300"
                       }`}
                     >
-                      <span className="mr-3 text-slate-500 text-xs min-w-[80px]">
+                      <span className="text-slate-500 mr-2">
                         {new Date(log.timestamp).toLocaleTimeString()}
                       </span>
-                      <span className="flex-1 break-words">{log.message}</span>
+                      {log.message}
                     </div>
                   ))}
-                  {/* Auto-scroll to bottom */}
-                  <div ref={(el) => {
-                    if (el) {
-                      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
-                    }
-                  }} />
                 </div>
               )}
             </div>
           </div>
         )}
 
+        {/* Tabs */}
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="border-b border-slate-200 dark:border-slate-700">
+            <div className="flex">
+              <button
+                onClick={() => setActiveTab("agents")}
+                className={`px-4 py-2 text-xs font-medium transition-colors ${
+                  activeTab === "agents"
+                    ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                Agents ({agents.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("admins")}
+                className={`px-4 py-2 text-xs font-medium transition-colors ${
+                  activeTab === "admins"
+                    ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                Admins ({admins.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("banners")}
+                className={`px-4 py-2 text-xs font-medium transition-colors ${
+                  activeTab === "banners"
+                    ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                Banners ({banners.length})
+              </button>
+            </div>
+          </div>
+
+          {/* Agents Tab */}
+          {activeTab === "agents" && (
+            <div className="p-4">
+              <div className="mb-4 flex justify-end">
+                <button
+                  onClick={() => setShowInstallForm(!showInstallForm)}
+                  className="px-3 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
+                >
+                  {showInstallForm ? "Cancel" : "Deploy"}
+                </button>
+              </div>
+
+              {showInstallForm && (
+                <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-md border border-slate-200 dark:border-slate-600">
+                  <h3 className="text-xs font-semibold mb-3 text-slate-800 dark:text-slate-200">Deploy Agent</h3>
+                  <form onSubmit={handleInstall} className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Agent Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          placeholder="My Agent"
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Server IP *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.serverIp}
+                          onChange={(e) => setFormData({ ...formData, serverIp: e.target.value })}
+                          placeholder="192.168.1.100"
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Username *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.username}
+                          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                          placeholder="root"
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Password *
+                        </label>
+                        <input
+                          type="password"
+                          required
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Repository URL *
+                        </label>
+                        <input
+                          type="url"
+                          required={formData.deploymentMethod === "github"}
+                          value={formData.repositoryUrl}
+                          onChange={(e) => setFormData({ ...formData, repositoryUrl: e.target.value })}
+                          placeholder="https://github.com/user/repo.git"
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Port
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.port}
+                          onChange={(e) => setFormData({ ...formData, port: e.target.value })}
+                          placeholder="8000"
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end pt-2">
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-4 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors disabled:opacity-50"
+                      >
+                        {loading ? "Deploying..." : "Deploy"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {agents.length === 0 ? (
+                <div className="text-center py-8 text-sm text-slate-500 dark:text-slate-400">
+                  No agents deployed
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-700">
+                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Status</th>
+                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Name</th>
+                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Server IP</th>
+                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Location</th>
+                        <th className="text-right py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {agents.map((agent) => (
+                        <tr key={agent.id} className={`border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 ${agent.hidden ? 'opacity-50' : ''}`}>
+                          <td className="py-2 px-3">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${
+                                agent.status === "online" ? "bg-green-500" :
+                                agent.status === "offline" ? "bg-red-500" :
+                                agent.status === "disabled" ? "bg-gray-400" :
+                                "bg-yellow-500 animate-pulse"
+                              }`} />
+                              <span className="text-xs text-slate-600 dark:text-slate-400 capitalize">{agent.status}</span>
+                            </div>
+                          </td>
+                          <td className="py-2 px-3 text-slate-800 dark:text-slate-200">{agent.name}</td>
+                          <td className="py-2 px-3 text-slate-600 dark:text-slate-400">{agent.serverIp}</td>
+                          <td className="py-2 px-3 text-slate-600 dark:text-slate-400 capitalize">{agent.location}</td>
+                          <td className="py-2 px-3">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => handleRefreshStatus(agent.id)}
+                                className="px-2 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                title="Refresh"
+                              >
+                                ↻
+                              </button>
+                              {agent.hidden ? (
+                                <button
+                                  onClick={() => handleEnable(agent.id)}
+                                  className="px-2 py-1 text-xs font-medium bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                                >
+                                  Show
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleDisable(agent.id)}
+                                  className="px-2 py-1 text-xs font-medium bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
+                                >
+                                  Hide
+                                </button>
+                              )}
+                              <button
+                                onClick={() => window.location.href = `/dashboard/agents/${agent.id}/edit`}
+                                className="px-2 py-1 text-xs font-medium bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleUninstall(agent.id)}
+                                className="px-2 py-1 text-xs font-medium bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Admins Tab */}
+          {activeTab === "admins" && (
+            <div className="p-4">
+              <div className="mb-4 flex justify-end">
+                <button
+                  onClick={() => {
+                    setShowAddAdminForm(!showAddAdminForm);
+                    setEditingAdmin(null);
+                  }}
+                  className="px-3 py-1.5 text-xs font-medium bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                >
+                  {showAddAdminForm ? "Cancel" : "+ Add Admin"}
+                </button>
+              </div>
+
+              {showAddAdminForm && (
+                <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-md border border-slate-200 dark:border-slate-600">
+                  <h3 className="text-xs font-semibold mb-3 text-slate-800 dark:text-slate-200">Add Admin</h3>
+                  <form onSubmit={handleAddAdmin} className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Username *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={adminFormData.username}
+                        onChange={(e) => setAdminFormData({ ...adminFormData, username: e.target.value })}
+                        className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Password *
+                        </label>
+                        <input
+                          type="password"
+                          required
+                          value={adminFormData.password}
+                          onChange={(e) => setAdminFormData({ ...adminFormData, password: e.target.value })}
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Confirm *
+                        </label>
+                        <input
+                          type="password"
+                          required
+                          value={adminFormData.confirmPassword}
+                          onChange={(e) => setAdminFormData({ ...adminFormData, confirmPassword: e.target.value })}
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        className="px-3 py-1.5 text-xs font-medium bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {admins.length === 0 ? (
+                <div className="text-center py-8 text-sm text-slate-500 dark:text-slate-400">
+                  No admins
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-700">
+                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Username</th>
+                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Created</th>
+                        <th className="text-right py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {admins.map((admin) => (
+                        <tr key={admin.id} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                          <td className="py-2 px-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-800 dark:text-slate-200">{admin.username}</span>
+                              {admin.id === currentAdmin.id && (
+                                <span className="px-1.5 py-0.5 text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded">
+                                  You
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-2 px-3 text-slate-600 dark:text-slate-400 text-xs">
+                            {new Date(admin.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="py-2 px-3">
+                            {editingAdmin?.id === admin.id ? (
+                              <div className="flex justify-end">
+                                <EditAdminForm
+                                  admin={admin}
+                                  currentAdminId={currentAdmin.id}
+                                  onSave={(username, password) => {
+                                    handleUpdateAdmin(admin.id, username, password);
+                                  }}
+                                  onCancel={() => setEditingAdmin(null)}
+                                />
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-end gap-1">
+                                <button
+                                  onClick={() => setEditingAdmin(admin)}
+                                  className="px-2 py-1 text-xs font-medium bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+                                >
+                                  Edit
+                                </button>
+                                {admin.id !== currentAdmin.id && (
+                                  <button
+                                    onClick={() => handleDeleteAdmin(admin.id)}
+                                    className="px-2 py-1 text-xs font-medium bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                                  >
+                                    Delete
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Banners Tab */}
+          {activeTab === "banners" && (
+            <div className="p-4">
+              <div className="mb-4 flex justify-end">
+                <button
+                  onClick={() => {
+                    setShowAddBannerForm(!showAddBannerForm);
+                    setEditingBanner(null);
+                    setBannerFormData({
+                      text: "",
+                      textColor: "#000000",
+                      backgroundColor: "#ffffff",
+                      hasBackground: true,
+                      fontSize: 16,
+                      animationDuration: 20,
+                      linkUrl: "",
+                      partialLinks: [],
+                      position: "top",
+                      isActive: true,
+                    });
+                  }}
+                  className="px-3 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
+                >
+                  {showAddBannerForm ? "Cancel" : "+ Add Banner"}
+                </button>
+              </div>
+
+              {(showAddBannerForm || editingBanner) && (
+                <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-md border border-slate-200 dark:border-slate-600">
+                  <h3 className="text-xs font-semibold mb-3 text-slate-800 dark:text-slate-200">
+                    {editingBanner ? "Edit Banner" : "Add Banner"}
+                  </h3>
+                  <form
+                    onSubmit={editingBanner ? (e) => { e.preventDefault(); handleUpdateBanner(editingBanner.id); } : handleAddBanner}
+                    className="space-y-3"
+                  >
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Text *
+                      </label>
+                      <textarea
+                        required
+                        value={bannerFormData.text}
+                        onChange={(e) => setBannerFormData({ ...bannerFormData, text: e.target.value })}
+                        placeholder="Enter banner text..."
+                        rows={3}
+                        className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Text Color
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="color"
+                            value={bannerFormData.textColor}
+                            onChange={(e) => setBannerFormData({ ...bannerFormData, textColor: e.target.value })}
+                            className="w-12 h-8 border border-slate-300 dark:border-slate-600 rounded cursor-pointer"
+                          />
+                          <input
+                            type="text"
+                            value={bannerFormData.textColor}
+                            onChange={(e) => setBannerFormData({ ...bannerFormData, textColor: e.target.value })}
+                            className="flex-1 px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                            placeholder="#000000"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Font Size (px)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={bannerFormData.fontSize}
+                          onChange={(e) => setBannerFormData({ ...bannerFormData, fontSize: parseInt(e.target.value) || 16 })}
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        <input
+                          type="checkbox"
+                          checked={bannerFormData.hasBackground}
+                          onChange={(e) => setBannerFormData({ ...bannerFormData, hasBackground: e.target.checked })}
+                          className="rounded border-slate-300 dark:border-slate-600"
+                        />
+                        Use Background Color
+                      </label>
+                    </div>
+
+                    {bannerFormData.hasBackground && (
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Background Color
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="color"
+                            value={bannerFormData.backgroundColor}
+                            onChange={(e) => setBannerFormData({ ...bannerFormData, backgroundColor: e.target.value })}
+                            className="w-12 h-8 border border-slate-300 dark:border-slate-600 rounded cursor-pointer"
+                          />
+                          <input
+                            type="text"
+                            value={bannerFormData.backgroundColor}
+                            onChange={(e) => setBannerFormData({ ...bannerFormData, backgroundColor: e.target.value })}
+                            className="flex-1 px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                            placeholder="#ffffff"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Animation Duration (seconds)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={bannerFormData.animationDuration}
+                          onChange={(e) => setBannerFormData({ ...bannerFormData, animationDuration: parseInt(e.target.value) || 20 })}
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Position
+                        </label>
+                        <select
+                          value={bannerFormData.position}
+                          onChange={(e) => setBannerFormData({ ...bannerFormData, position: e.target.value as "top" | "bottom" })}
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        >
+                          <option value="top">Top (Above Header)</option>
+                          <option value="bottom">Bottom (Below Header)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Link URL (optional - links entire text)
+                      </label>
+                      <input
+                        type="url"
+                        value={bannerFormData.linkUrl}
+                        onChange={(e) => setBannerFormData({ ...bannerFormData, linkUrl: e.target.value })}
+                        placeholder="https://example.com"
+                        className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                      />
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        If set, the entire banner text will be clickable. Leave empty to use partial links below.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
+                        Partial Links (link specific words/phrases)
+                      </label>
+                      <div className="space-y-2">
+                        {bannerFormData.partialLinks.map((link, index) => (
+                          <div key={index} className="space-y-2 p-3 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+                            <div className="flex gap-2 items-start">
+                              <div className="flex-1">
+                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                  Text to Link
+                                </label>
+                                <input
+                                  type="text"
+                                  value={link.text}
+                                  onChange={(e) => {
+                                    const newLinks = [...bannerFormData.partialLinks];
+                                    newLinks[index].text = e.target.value;
+                                    setBannerFormData({ ...bannerFormData, partialLinks: newLinks });
+                                  }}
+                                  placeholder="Text to link (must exist in banner text)"
+                                  className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                  URL
+                                </label>
+                                <input
+                                  type="url"
+                                  value={link.url}
+                                  onChange={(e) => {
+                                    const newLinks = [...bannerFormData.partialLinks];
+                                    newLinks[index].url = e.target.value;
+                                    setBannerFormData({ ...bannerFormData, partialLinks: newLinks });
+                                  }}
+                                  placeholder="https://example.com"
+                                  className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                                />
+                              </div>
+                            </div>
+                            <div className="flex gap-2 items-end">
+                              <div className="flex-1">
+                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                                  Link Color
+                                </label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="color"
+                                    value={link.color || "#0000EE"}
+                                    onChange={(e) => {
+                                      const newLinks = [...bannerFormData.partialLinks];
+                                      newLinks[index].color = e.target.value;
+                                      setBannerFormData({ ...bannerFormData, partialLinks: newLinks });
+                                    }}
+                                    className="w-12 h-8 border border-slate-300 dark:border-slate-600 rounded cursor-pointer"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={link.color || "#0000EE"}
+                                    onChange={(e) => {
+                                      const newLinks = [...bannerFormData.partialLinks];
+                                      newLinks[index].color = e.target.value;
+                                      setBannerFormData({ ...bannerFormData, partialLinks: newLinks });
+                                    }}
+                                    placeholder="#0000EE"
+                                    className="flex-1 px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                                  />
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newLinks = bannerFormData.partialLinks.filter((_, i) => i !== index);
+                                  setBannerFormData({ ...bannerFormData, partialLinks: newLinks });
+                                }}
+                                className="px-3 py-1.5 text-xs font-medium bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBannerFormData({
+                              ...bannerFormData,
+                              partialLinks: [...bannerFormData.partialLinks, { text: "", url: "", color: "#0000EE" }],
+                            });
+                          }}
+                          className="w-full px-3 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
+                        >
+                          + Add Partial Link
+                        </button>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Add links for specific words or phrases in your banner text. The text must exactly match part of your banner text.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
+                        <input
+                          type="checkbox"
+                          checked={bannerFormData.isActive}
+                          onChange={(e) => setBannerFormData({ ...bannerFormData, isActive: e.target.checked })}
+                          className="rounded border-slate-300 dark:border-slate-600"
+                        />
+                        Active (visible on site)
+                      </label>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                      {editingBanner && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingBanner(null);
+                            setBannerFormData({
+                              text: "",
+                              textColor: "#000000",
+                              backgroundColor: "#ffffff",
+                              hasBackground: true,
+                              fontSize: 16,
+                              animationDuration: 20,
+                              linkUrl: "",
+                              position: "top",
+                              isActive: true,
+                            });
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                      <button
+                        type="submit"
+                        className="px-3 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
+                      >
+                        {editingBanner ? "Update" : "Add"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {banners.length === 0 ? (
+                <div className="text-center py-8 text-sm text-slate-500 dark:text-slate-400">
+                  No banners created
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {banners.map((banner) => (
+                    <div
+                      key={banner.id}
+                      className="p-3 bg-slate-50 dark:bg-slate-700/30 rounded-md border border-slate-200 dark:border-slate-600"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`px-2 py-0.5 text-xs rounded ${
+                              banner.is_active
+                                ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+                            }`}>
+                              {banner.is_active ? "Active" : "Inactive"}
+                            </span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                              {banner.position === "top" ? "Top" : "Bottom"}
+                            </span>
+                          </div>
+                          <div
+                            className="text-sm text-slate-800 dark:text-slate-200 mb-2"
+                            style={{
+                              color: banner.text_color,
+                              fontSize: `${banner.font_size}px`,
+                            }}
+                          >
+                            {banner.text}
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400 space-y-0.5">
+                            <div>Font: {banner.font_size}px | Duration: {banner.animation_duration}s</div>
+                            {banner.link_url && (
+                              <div>Link: <a href={banner.link_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">{banner.link_url}</a></div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 ml-3">
+                          <button
+                            onClick={() => handleToggleBannerActive(banner.id, banner.is_active)}
+                            className={`px-2 py-1 text-xs font-medium rounded hover:opacity-80 transition-colors ${
+                              banner.is_active
+                                ? "bg-yellow-500 text-white"
+                                : "bg-green-500 text-white"
+                            }`}
+                            title={banner.is_active ? "Disable" : "Enable"}
+                          >
+                            {banner.is_active ? "Disable" : "Enable"}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingBanner(banner);
+                              setShowAddBannerForm(false);
+                              setBannerFormData({
+                                text: banner.text,
+                                textColor: banner.text_color,
+                                backgroundColor: banner.background_color || "#ffffff",
+                                hasBackground: banner.has_background,
+                                fontSize: banner.font_size,
+                                animationDuration: banner.animation_duration,
+                                linkUrl: banner.link_url || "",
+                                partialLinks: banner.partial_links ? (Array.isArray(banner.partial_links) ? banner.partial_links : JSON.parse(banner.partial_links as any)) : [],
+                                position: banner.position,
+                                isActive: banner.is_active,
+                              });
+                            }}
+                            className="px-2 py-1 text-xs font-medium bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBanner(banner.id)}
+                            className="px-2 py-1 text-xs font-medium bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Notification Toast */}
         {showNotification && (
           <div
-            className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-2xl transform transition-all duration-300 ${
+            className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg text-sm font-medium transform transition-all duration-300 ${
               notificationType === "success"
-                ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
-                : "bg-gradient-to-r from-red-500 to-rose-600 text-white"
+                ? "bg-green-500 text-white"
+                : "bg-red-500 text-white"
             }`}
-            style={{
-              animation: "slideInRight 0.3s ease-out",
-            }}
           >
-            <div className="flex items-center space-x-3">
-              <div className="text-xl">
-                {notificationType === "success" ? "✅" : "❌"}
-              </div>
-              <div className="font-semibold">{notificationMessage}</div>
+            <div className="flex items-center gap-2">
+              <span>{notificationType === "success" ? "✓" : "✕"}</span>
+              <span>{notificationMessage}</span>
               <button
                 onClick={() => setShowNotification(false)}
-                className="ml-4 text-white/80 hover:text-white transition-colors"
+                className="ml-2 hover:opacity-80"
               >
                 ✕
               </button>
             </div>
           </div>
         )}
-
-        {/* Agents List */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">
-              Deployed Agents ({agents.length})
-            </h2>
-          </div>
-          <div className="divide-y divide-slate-200 dark:divide-slate-700">
-            {agents.length === 0 ? (
-              <div className="p-8 text-center text-slate-500 dark:text-slate-400">
-                No agents deployed yet. Click "Deploy Agent" to get started.
-              </div>
-            ) : (
-              agents.map((agent) => (
-                <div key={agent.id} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-3 h-3 rounded-full ${
-                        agent.status === "online" ? "bg-green-500" :
-                        agent.status === "offline" ? "bg-red-500" :
-                        "bg-yellow-500 animate-pulse"
-                      }`} />
-                      <div>
-                        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
-                          {agent.name}
-                        </h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          {agent.serverIp}
-                          {agent.location && ` • ${agent.location === "internal" ? "Internal" : "External"}`}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        agent.status === "online" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
-                        agent.status === "offline" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" :
-                        agent.status === "disabled" ? "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200" :
-                        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                      }`}>
-                        {agent.status.toUpperCase()}
-                      </span>
-                      <button
-                        onClick={() => handleRefreshStatus(agent.id)}
-                        className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-xs font-medium"
-                        title="Refresh Status"
-                      >
-                        🔄
-                      </button>
-                      {agent.status === "disabled" ? (
-                        <button
-                          onClick={() => handleEnable(agent.id)}
-                          className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-xs font-medium"
-                        >
-                          Enable
-                        </button>
-                      ) : agent.status === "online" ? (
-                        <button
-                          onClick={() => handleDisable(agent.id)}
-                          className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-xs font-medium"
-                        >
-                          Disable
-                        </button>
-                      ) : null}
-                      <button
-                        onClick={() => window.location.href = `/dashboard/agents/${agent.id}/edit`}
-                        className="px-3 py-1 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors text-xs font-medium"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleUninstall(agent.id)}
-                        className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-xs font-medium"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );
