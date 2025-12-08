@@ -24,6 +24,7 @@ export interface Agent {
   createdAt?: string;
   updatedAt?: string;
   hidden?: boolean;
+  displayOrder?: number;
   // Additional fields for deployment
   username?: string;
   targetPath?: string;
@@ -60,6 +61,7 @@ function mapRowToAgent(row: any): Agent {
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : undefined,
     updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : undefined,
     hidden: row.hidden || false,
+    displayOrder: row.display_order || 0,
     username: row.username,
     targetPath: row.target_path,
     deploymentMethod: row.deployment_method,
@@ -81,8 +83,8 @@ export async function getAgents(includeHidden: boolean = false): Promise<Agent[]
   const client = await pool.connect();
   try {
     const query = includeHidden 
-      ? 'SELECT * FROM agents ORDER BY created_at DESC'
-      : 'SELECT * FROM agents WHERE hidden = false OR hidden IS NULL ORDER BY created_at DESC';
+      ? 'SELECT * FROM agents ORDER BY display_order ASC, created_at DESC'
+      : 'SELECT * FROM agents WHERE hidden = false OR hidden IS NULL ORDER BY display_order ASC, created_at DESC';
     const result = await client.query(query);
     return result.rows.map(mapRowToAgent);
   } finally {
@@ -238,6 +240,10 @@ export async function updateAgent(agentId: string, updates: Partial<Agent>): Pro
     if (updates.hidden !== undefined) {
       fields.push(`hidden = $${paramIndex++}`);
       values.push(updates.hidden);
+    }
+    if (updates.displayOrder !== undefined) {
+      fields.push(`display_order = $${paramIndex++}`);
+      values.push(updates.displayOrder);
     }
 
     if (fields.length === 0) {

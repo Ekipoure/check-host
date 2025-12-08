@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     const client = await pool.connect();
     try {
       const result = await client.query(
-        "SELECT id, username, created_at, updated_at FROM admins ORDER BY created_at DESC"
+        "SELECT id, username, display_order, created_at, updated_at FROM admins ORDER BY display_order ASC, created_at DESC"
       );
 
       return NextResponse.json({
@@ -142,7 +142,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { id, username, password } = await request.json();
+    const { id, username, password, displayOrder } = await request.json();
 
     if (!id) {
       return NextResponse.json(
@@ -169,6 +169,11 @@ export async function PUT(request: NextRequest) {
       const updates: string[] = [];
       const values: any[] = [];
       let paramCount = 1;
+
+      if (displayOrder !== undefined) {
+        updates.push(`display_order = $${paramCount++}`);
+        values.push(displayOrder);
+      }
 
       if (username) {
         // Check if new username already exists (excluding current admin)

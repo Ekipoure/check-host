@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
       // Return all banners for admin
       const result = await pool.query(
-        "SELECT * FROM banners ORDER BY created_at DESC"
+        "SELECT * FROM banners ORDER BY display_order ASC, created_at DESC"
       );
       // Parse partial_links from JSON
       const banners = result.rows.map((row) => ({
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     } else {
       // Return only active banners for public
       const result = await pool.query(
-        "SELECT * FROM banners WHERE is_active = true ORDER BY position, created_at DESC"
+        "SELECT * FROM banners WHERE is_active = true ORDER BY position, display_order ASC, created_at DESC"
       );
       // Parse partial_links from JSON
       const banners = result.rows.map((row) => ({

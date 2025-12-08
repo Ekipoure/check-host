@@ -143,6 +143,25 @@ export async function initializeDatabase() {
       console.warn('Warning adding country_emoji column:', error.message);
     }
 
+    // Add display_order column to agents table if it doesn't exist (migration)
+    try {
+      const columnCheck = await client.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name='agents' AND column_name='display_order'
+      `);
+      
+      if (columnCheck.rows.length === 0) {
+        await client.query(`
+          ALTER TABLE agents 
+          ADD COLUMN display_order INTEGER DEFAULT 0
+        `);
+        console.log('✅ Added display_order column to agents table');
+      }
+    } catch (error: any) {
+      console.warn('Warning adding display_order column to agents:', error.message);
+    }
+
     // Create deployment_logs table
     await client.query(`
       CREATE TABLE IF NOT EXISTS deployment_logs (
@@ -161,10 +180,30 @@ export async function initializeDatabase() {
         id SERIAL PRIMARY KEY,
         username VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
+        display_order INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add display_order column to admins table if it doesn't exist (migration)
+    try {
+      const columnCheck = await client.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name='admins' AND column_name='display_order'
+      `);
+      
+      if (columnCheck.rows.length === 0) {
+        await client.query(`
+          ALTER TABLE admins 
+          ADD COLUMN display_order INTEGER DEFAULT 0
+        `);
+        console.log('✅ Added display_order column to admins table');
+      }
+    } catch (error: any) {
+      console.warn('Warning adding display_order column to admins:', error.message);
+    }
 
     // Create banners table
     await client.query(`
@@ -179,10 +218,30 @@ export async function initializeDatabase() {
         link_url TEXT,
         position VARCHAR(20) DEFAULT 'top',
         is_active BOOLEAN DEFAULT true,
+        display_order INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add display_order column to banners table if it doesn't exist (migration)
+    try {
+      const columnCheck = await client.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name='banners' AND column_name='display_order'
+      `);
+      
+      if (columnCheck.rows.length === 0) {
+        await client.query(`
+          ALTER TABLE banners 
+          ADD COLUMN display_order INTEGER DEFAULT 0
+        `);
+        console.log('✅ Added display_order column to banners table');
+      }
+    } catch (error: any) {
+      console.warn('Warning adding display_order column to banners:', error.message);
+    }
 
     // Add partial_links column if it doesn't exist (migration)
     try {
@@ -251,6 +310,15 @@ export async function initializeDatabase() {
     `);
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_advertisements_display_order ON advertisements(display_order)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_agents_display_order ON agents(display_order)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_admins_display_order ON admins(display_order)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_banners_display_order ON banners(display_order)
     `);
 
     // Create default admin if no admins exist

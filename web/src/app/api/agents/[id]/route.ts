@@ -49,12 +49,18 @@ export async function PUT(
     }
 
     // Don't allow updating password through this endpoint
-    const { password, ...updateData } = body;
+    const { password, displayOrder, ...updateData } = body;
     
-    await updateAgent(id, {
+    const updates: any = {
       ...updateData,
       updatedAt: new Date().toISOString(),
-    });
+    };
+    
+    if (displayOrder !== undefined) {
+      updates.displayOrder = displayOrder;
+    }
+    
+    await updateAgent(id, updates);
 
     const updatedAgent = await getAgentById(id);
     return NextResponse.json({

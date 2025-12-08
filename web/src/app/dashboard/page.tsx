@@ -11,6 +11,7 @@ interface Agent {
   status: "online" | "offline" | "installing" | "disabled";
   lastSeen?: string;
   hidden?: boolean;
+  displayOrder?: number;
 }
 
 interface DeploymentLog {
@@ -112,6 +113,7 @@ function EditAdminForm({ admin, currentAdminId, onSave, onCancel }: EditAdminFor
 interface Admin {
   id: number;
   username: string;
+  display_order?: number;
   created_at: string;
   updated_at: string;
 }
@@ -136,6 +138,7 @@ interface Banner {
   partial_links: PartialLink[] | null;
   position: "top" | "bottom";
   is_active: boolean;
+  display_order?: number;
   created_at: string;
   updated_at: string;
 }
@@ -201,6 +204,12 @@ export default function DashboardPage() {
   const [advertisementUploadMethod, setAdvertisementUploadMethod] = useState<"upload" | "url">("upload");
   const [draggedAdId, setDraggedAdId] = useState<number | null>(null);
   const [dragOverAdId, setDragOverAdId] = useState<number | null>(null);
+  const [draggedAgentId, setDraggedAgentId] = useState<string | null>(null);
+  const [dragOverAgentId, setDragOverAgentId] = useState<string | null>(null);
+  const [draggedAdminId, setDraggedAdminId] = useState<number | null>(null);
+  const [dragOverAdminId, setDragOverAdminId] = useState<number | null>(null);
+  const [draggedBannerId, setDraggedBannerId] = useState<number | null>(null);
+  const [dragOverBannerId, setDragOverBannerId] = useState<number | null>(null);
   const [bannerFormData, setBannerFormData] = useState({
     text: "",
     textColor: "#000000",
@@ -525,18 +534,6 @@ export default function DashboardPage() {
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
-    }
-  };
-
-  const handleRefreshStatus = async (agentId: string) => {
-    try {
-      const response = await fetch(`/api/agents/${agentId}/status`);
-      const data = await response.json();
-      if (data.success) {
-        loadAgents();
-      }
-    } catch (error) {
-      console.error("Error refreshing status:", error);
     }
   };
 
@@ -1292,6 +1289,282 @@ export default function DashboardPage() {
     }
   };
 
+  // Agents drag and drop handlers
+  const handleAgentDragStart = (e: React.DragEvent, agentId: string) => {
+    setDraggedAgentId(agentId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/html", agentId);
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "0.5";
+    }
+  };
+
+  const handleAgentDragEnd = (e: React.DragEvent) => {
+    setDraggedAgentId(null);
+    setDragOverAgentId(null);
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "1";
+    }
+  };
+
+  const handleAgentDragOver = (e: React.DragEvent, agentId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    if (draggedAgentId !== null && draggedAgentId !== agentId) {
+      setDragOverAgentId(agentId);
+    }
+  };
+
+  const handleAgentDrop = async (e: React.DragEvent, targetAgentId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverAgentId(null);
+
+    let actualDraggedAgentId = draggedAgentId;
+    if (actualDraggedAgentId === null) {
+      const data = e.dataTransfer.getData("text/html");
+      if (data) {
+        actualDraggedAgentId = data;
+      }
+    }
+
+    if (actualDraggedAgentId === null || actualDraggedAgentId === targetAgentId) {
+      setDraggedAgentId(null);
+      return;
+    }
+
+    try {
+      const sortedAgents = [...agents].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+      const draggedIndex = sortedAgents.findIndex((a) => a.id === actualDraggedAgentId);
+      const targetIndex = sortedAgents.findIndex((a) => a.id === targetAgentId);
+
+      if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) {
+        setDraggedAgentId(null);
+        return;
+      }
+
+      const reorderedAgents = [...sortedAgents];
+      const [movedAgent] = reorderedAgents.splice(draggedIndex, 1);
+      reorderedAgents.splice(targetIndex, 0, movedAgent);
+
+      const updates: Promise<any>[] = [];
+      reorderedAgents.forEach((agent, index) => {
+        if ((agent.displayOrder || 0) !== index) {
+          updates.push(
+            fetch(`/api/agents/${agent.id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ displayOrder: index }),
+            })
+          );
+        }
+      });
+
+      await Promise.all(updates);
+      setDraggedAgentId(null);
+      await loadAgents();
+      
+      setNotificationMessage("Agents order updated successfully");
+      setNotificationType("success");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 3000);
+    } catch (error) {
+      console.error("Error updating agents order:", error);
+      setNotificationMessage("Failed to update order");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+      setDraggedAgentId(null);
+    }
+  };
+
+  // Admins drag and drop handlers
+  const handleAdminDragStart = (e: React.DragEvent, adminId: number) => {
+    setDraggedAdminId(adminId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/html", adminId.toString());
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "0.5";
+    }
+  };
+
+  const handleAdminDragEnd = (e: React.DragEvent) => {
+    setDraggedAdminId(null);
+    setDragOverAdminId(null);
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "1";
+    }
+  };
+
+  const handleAdminDragOver = (e: React.DragEvent, adminId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    if (draggedAdminId !== null && draggedAdminId !== adminId) {
+      setDragOverAdminId(adminId);
+    }
+  };
+
+  const handleAdminDrop = async (e: React.DragEvent, targetAdminId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverAdminId(null);
+
+    let actualDraggedAdminId = draggedAdminId;
+    if (actualDraggedAdminId === null) {
+      const data = e.dataTransfer.getData("text/html");
+      if (data) {
+        actualDraggedAdminId = parseInt(data, 10);
+      }
+    }
+
+    if (actualDraggedAdminId === null || actualDraggedAdminId === targetAdminId) {
+      setDraggedAdminId(null);
+      return;
+    }
+
+    try {
+      const sortedAdmins = [...admins].sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+      const draggedIndex = sortedAdmins.findIndex((a) => a.id === actualDraggedAdminId);
+      const targetIndex = sortedAdmins.findIndex((a) => a.id === targetAdminId);
+
+      if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) {
+        setDraggedAdminId(null);
+        return;
+      }
+
+      const reorderedAdmins = [...sortedAdmins];
+      const [movedAdmin] = reorderedAdmins.splice(draggedIndex, 1);
+      reorderedAdmins.splice(targetIndex, 0, movedAdmin);
+
+      const updates: Promise<any>[] = [];
+      reorderedAdmins.forEach((admin, index) => {
+        if ((admin.display_order || 0) !== index) {
+          updates.push(
+            fetch(`/api/auth/admins`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ id: admin.id, displayOrder: index }),
+            })
+          );
+        }
+      });
+
+      await Promise.all(updates);
+      setDraggedAdminId(null);
+      await loadAdmins();
+      
+      setNotificationMessage("Admins order updated successfully");
+      setNotificationType("success");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 3000);
+    } catch (error) {
+      console.error("Error updating admins order:", error);
+      setNotificationMessage("Failed to update order");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+      setDraggedAdminId(null);
+    }
+  };
+
+  // Banners drag and drop handlers
+  const handleBannerDragStart = (e: React.DragEvent, bannerId: number) => {
+    setDraggedBannerId(bannerId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/html", bannerId.toString());
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "0.5";
+    }
+  };
+
+  const handleBannerDragEnd = (e: React.DragEvent) => {
+    setDraggedBannerId(null);
+    setDragOverBannerId(null);
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "1";
+    }
+  };
+
+  const handleBannerDragOver = (e: React.DragEvent, bannerId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    if (draggedBannerId !== null && draggedBannerId !== bannerId) {
+      setDragOverBannerId(bannerId);
+    }
+  };
+
+  const handleBannerDrop = async (e: React.DragEvent, targetBannerId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverBannerId(null);
+
+    let actualDraggedBannerId = draggedBannerId;
+    if (actualDraggedBannerId === null) {
+      const data = e.dataTransfer.getData("text/html");
+      if (data) {
+        actualDraggedBannerId = parseInt(data, 10);
+      }
+    }
+
+    if (actualDraggedBannerId === null || actualDraggedBannerId === targetBannerId) {
+      setDraggedBannerId(null);
+      return;
+    }
+
+    try {
+      const sortedBanners = [...banners].sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+      const draggedIndex = sortedBanners.findIndex((b) => b.id === actualDraggedBannerId);
+      const targetIndex = sortedBanners.findIndex((b) => b.id === targetBannerId);
+
+      if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) {
+        setDraggedBannerId(null);
+        return;
+      }
+
+      const reorderedBanners = [...sortedBanners];
+      const [movedBanner] = reorderedBanners.splice(draggedIndex, 1);
+      reorderedBanners.splice(targetIndex, 0, movedBanner);
+
+      const updates: Promise<any>[] = [];
+      reorderedBanners.forEach((banner, index) => {
+        if ((banner.display_order || 0) !== index) {
+          updates.push(
+            fetch(`/api/banners/${banner.id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ displayOrder: index }),
+            })
+          );
+        }
+      });
+
+      await Promise.all(updates);
+      setDraggedBannerId(null);
+      await loadBanners();
+      
+      setNotificationMessage("Banners order updated successfully");
+      setNotificationType("success");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 3000);
+    } catch (error) {
+      console.error("Error updating banners order:", error);
+      setNotificationMessage("Failed to update order");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+      setDraggedBannerId(null);
+    }
+  };
+
   if (!currentAdmin) {
     return (
       <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 4rem)' }}>
@@ -1522,6 +1795,7 @@ export default function DashboardPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-slate-200 dark:border-slate-700">
+                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 w-8">↕</th>
                         <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Status</th>
                         <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Name</th>
                         <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Server IP</th>
@@ -1530,8 +1804,18 @@ export default function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {agents.map((agent) => (
-                        <tr key={agent.id} className={`border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 ${agent.hidden ? 'opacity-50' : ''}`}>
+                      {agents.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)).map((agent) => (
+                        <tr 
+                          key={agent.id} 
+                          draggable
+                          onDragStart={(e) => handleAgentDragStart(e, agent.id)}
+                          onDragEnd={handleAgentDragEnd}
+                          onDragOver={(e) => handleAgentDragOver(e, agent.id)}
+                          onDrop={(e) => handleAgentDrop(e, agent.id)}
+                          className={`border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-move ${agent.hidden ? 'opacity-50' : ''} ${dragOverAgentId === agent.id ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}>
+                          <td className="py-2 px-3 text-slate-400">
+                            ⋮⋮
+                          </td>
                           <td className="py-2 px-3">
                             <div className="flex items-center gap-2">
                               <div className={`w-2 h-2 rounded-full ${
@@ -1548,13 +1832,6 @@ export default function DashboardPage() {
                           <td className="py-2 px-3 text-slate-600 dark:text-slate-400 capitalize">{agent.location}</td>
                           <td className="py-2 px-3">
                             <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() => handleRefreshStatus(agent.id)}
-                                className="px-2 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                title="Refresh"
-                              >
-                                ↻
-                              </button>
                               {agent.hidden ? (
                                 <button
                                   onClick={() => handleEnable(agent.id)}
@@ -1671,14 +1948,25 @@ export default function DashboardPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-slate-200 dark:border-slate-700">
+                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 w-8">↕</th>
                         <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Username</th>
                         <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Created</th>
                         <th className="text-right py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {admins.map((admin) => (
-                        <tr key={admin.id} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                      {admins.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map((admin) => (
+                        <tr 
+                          key={admin.id} 
+                          draggable
+                          onDragStart={(e) => handleAdminDragStart(e, admin.id)}
+                          onDragEnd={handleAdminDragEnd}
+                          onDragOver={(e) => handleAdminDragOver(e, admin.id)}
+                          onDrop={(e) => handleAdminDrop(e, admin.id)}
+                          className={`border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-move ${dragOverAdminId === admin.id ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}>
+                          <td className="py-2 px-3 text-slate-400">
+                            ⋮⋮
+                          </td>
                           <td className="py-2 px-3">
                             <div className="flex items-center gap-2">
                               <span className="text-slate-800 dark:text-slate-200">{admin.username}</span>
@@ -2051,14 +2339,21 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {banners.map((banner) => (
+                  {banners.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map((banner) => (
                     <div
                       key={banner.id}
-                      className="p-3 bg-slate-50 dark:bg-slate-700/30 rounded-md border border-slate-200 dark:border-slate-600"
+                      draggable
+                      onDragStart={(e) => handleBannerDragStart(e, banner.id)}
+                      onDragEnd={handleBannerDragEnd}
+                      onDragOver={(e) => handleBannerDragOver(e, banner.id)}
+                      onDrop={(e) => handleBannerDrop(e, banner.id)}
+                      className={`p-3 bg-slate-50 dark:bg-slate-700/30 rounded-md border border-slate-200 dark:border-slate-600 cursor-move ${dragOverBannerId === banner.id ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-300 dark:border-indigo-600' : ''}`}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
+                        <div className="flex-1 flex items-start gap-2">
+                          <span className="text-slate-400 text-sm mt-1">⋮⋮</span>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
                             <span className={`px-2 py-0.5 text-xs rounded ${
                               banner.is_active
                                 ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
@@ -2069,21 +2364,22 @@ export default function DashboardPage() {
                             <span className="text-xs text-slate-500 dark:text-slate-400">
                               {banner.position === "top" ? "Top" : "Bottom"}
                             </span>
-                          </div>
-                          <div
-                            className="text-sm text-slate-800 dark:text-slate-200 mb-2"
-                            style={{
-                              color: banner.text_color,
-                              fontSize: `${banner.font_size}px`,
-                            }}
-                          >
-                            {banner.text}
-                          </div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400 space-y-0.5">
-                            <div>Font: {banner.font_size}px | Duration: {banner.animation_duration}s</div>
-                            {banner.link_url && (
-                              <div>Link: <a href={banner.link_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">{banner.link_url}</a></div>
-                            )}
+                            </div>
+                            <div
+                              className="text-sm text-slate-800 dark:text-slate-200 mb-2"
+                              style={{
+                                color: banner.text_color,
+                                fontSize: `${banner.font_size}px`,
+                              }}
+                            >
+                              {banner.text}
+                            </div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-0.5">
+                              <div>Font: {banner.font_size}px | Duration: {banner.animation_duration}s</div>
+                              {banner.link_url && (
+                                <div>Link: <a href={banner.link_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">{banner.link_url}</a></div>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 ml-3">

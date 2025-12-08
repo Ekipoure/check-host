@@ -149,6 +149,10 @@ export async function PUT(
       updates.push(`is_active = $${paramIndex++}`);
       values.push(isActive);
     }
+    if (body.displayOrder !== undefined) {
+      updates.push(`display_order = $${paramIndex++}`);
+      values.push(body.displayOrder);
+    }
 
     if (updates.length === 0) {
       return NextResponse.json(
