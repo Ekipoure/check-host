@@ -203,6 +203,27 @@ export async function initializeDatabase() {
       console.warn('Warning adding partial_links column:', error.message);
     }
 
+    // Create advertisements table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS advertisements (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255),
+        file_type VARCHAR(20) NOT NULL CHECK (file_type IN ('image', 'gif')),
+        file_url TEXT NOT NULL,
+        file_path TEXT,
+        link_url TEXT,
+        position VARCHAR(20) DEFAULT 'below_table',
+        width INTEGER,
+        height INTEGER,
+        alt_text TEXT,
+        is_active BOOLEAN DEFAULT true,
+        display_order INTEGER DEFAULT 0,
+        settings JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Create indexes
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_agents_status ON agents(status)
@@ -221,6 +242,15 @@ export async function initializeDatabase() {
     `);
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_banners_position ON banners(position)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_advertisements_is_active ON advertisements(is_active)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_advertisements_position ON advertisements(position)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_advertisements_display_order ON advertisements(display_order)
     `);
 
     // Create default admin if no admins exist

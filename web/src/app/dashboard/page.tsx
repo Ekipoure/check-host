@@ -116,7 +116,7 @@ interface Admin {
   updated_at: string;
 }
 
-type TabType = "agents" | "admins" | "banners";
+type TabType = "agents" | "admins" | "banners" | "advertisements";
 
 interface PartialLink {
   text: string;
@@ -136,6 +136,24 @@ interface Banner {
   partial_links: PartialLink[] | null;
   position: "top" | "bottom";
   is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Advertisement {
+  id: number;
+  title: string | null;
+  file_type: "image" | "gif";
+  file_url: string;
+  file_path: string | null;
+  link_url: string | null;
+  position: string;
+  width: number | null;
+  height: number | null;
+  alt_text: string | null;
+  is_active: boolean;
+  display_order: number;
+  settings: any;
   created_at: string;
   updated_at: string;
 }
@@ -163,6 +181,26 @@ export default function DashboardPage() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [showAddBannerForm, setShowAddBannerForm] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
+  const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
+  const [showAddAdvertisementForm, setShowAddAdvertisementForm] = useState(false);
+  const [editingAdvertisement, setEditingAdvertisement] = useState<Advertisement | null>(null);
+  const [advertisementFormData, setAdvertisementFormData] = useState({
+    title: "",
+    fileType: "image" as "image" | "gif",
+    fileUrl: "",
+    linkUrl: "",
+    position: "below_table",
+    width: "",
+    height: "",
+    altText: "",
+    isActive: true,
+    displayOrder: 0,
+    settings: {} as any,
+  });
+  const [advertisementFile, setAdvertisementFile] = useState<File | null>(null);
+  const [advertisementUploadMethod, setAdvertisementUploadMethod] = useState<"upload" | "url">("upload");
+  const [draggedAdId, setDraggedAdId] = useState<number | null>(null);
+  const [dragOverAdId, setDragOverAdId] = useState<number | null>(null);
   const [bannerFormData, setBannerFormData] = useState({
     text: "",
     textColor: "#000000",
@@ -212,6 +250,7 @@ export default function DashboardPage() {
           loadAgents();
           loadAdmins();
           loadBanners();
+          loadAdvertisements();
         }
       })
       .catch(() => {
@@ -240,6 +279,18 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error("Error loading banners:", error);
+    }
+  };
+
+  const loadAdvertisements = async () => {
+    try {
+      const response = await fetch("/api/advertisements?admin=true");
+      const data = await response.json();
+      if (data.success) {
+        setAdvertisements(data.advertisements);
+      }
+    } catch (error) {
+      console.error("Error loading advertisements:", error);
     }
   };
 
@@ -801,6 +852,446 @@ export default function DashboardPage() {
     }
   };
 
+  const handleAddAdvertisement = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (advertisementUploadMethod === "upload" && !advertisementFile && !advertisementFormData.fileUrl) {
+      setNotificationMessage("Please upload a file or provide a file URL");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+      return;
+    }
+
+    if (advertisementUploadMethod === "url" && !advertisementFormData.fileUrl) {
+      setNotificationMessage("File URL is required");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("title", advertisementFormData.title);
+      formData.append("file_type", advertisementFormData.fileType);
+      formData.append("file_url", advertisementFormData.fileUrl);
+      formData.append("link_url", advertisementFormData.linkUrl);
+      formData.append("position", advertisementFormData.position);
+      if (advertisementFormData.width) formData.append("width", advertisementFormData.width);
+      if (advertisementFormData.height) formData.append("height", advertisementFormData.height);
+      formData.append("alt_text", advertisementFormData.altText);
+      formData.append("is_active", advertisementFormData.isActive.toString());
+      formData.append("display_order", "0");
+      formData.append("settings", JSON.stringify(advertisementFormData.settings));
+      
+      if (advertisementFile) {
+        formData.append("file", advertisementFile);
+      }
+
+      const response = await fetch("/api/advertisements", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotificationMessage("Advertisement added");
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        setShowAddAdvertisementForm(false);
+        setAdvertisementFormData({
+          title: "",
+          fileType: "image",
+          fileUrl: "",
+          linkUrl: "",
+          position: "below_table",
+          width: "",
+          height: "",
+          altText: "",
+          isActive: true,
+          displayOrder: 0,
+          settings: {},
+        });
+        setAdvertisementFile(null);
+        setAdvertisementUploadMethod("upload");
+        loadAdvertisements();
+      } else {
+        setNotificationMessage(`Error: ${data.error || "Failed to add advertisement"}`);
+        setNotificationType("error");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error adding advertisement:", error);
+      setNotificationMessage("Failed to add advertisement");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+  };
+
+  const handleUpdateAdvertisement = async (advertisementId: number) => {
+    if (advertisementUploadMethod === "url" && !advertisementFormData.fileUrl) {
+      setNotificationMessage("File URL is required");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("title", advertisementFormData.title);
+      formData.append("file_type", advertisementFormData.fileType);
+      formData.append("file_url", advertisementFormData.fileUrl);
+      formData.append("link_url", advertisementFormData.linkUrl);
+      formData.append("position", advertisementFormData.position);
+      if (advertisementFormData.width) formData.append("width", advertisementFormData.width);
+      if (advertisementFormData.height) formData.append("height", advertisementFormData.height);
+      formData.append("alt_text", advertisementFormData.altText);
+      formData.append("is_active", advertisementFormData.isActive.toString());
+      // display_order is managed via dropdown in table, not in form
+      formData.append("settings", JSON.stringify(advertisementFormData.settings));
+      
+      if (advertisementFile) {
+        formData.append("file", advertisementFile);
+      }
+
+      const response = await fetch(`/api/advertisements/${advertisementId}`, {
+        method: "PUT",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotificationMessage("Advertisement updated");
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        setEditingAdvertisement(null);
+        setAdvertisementFormData({
+          title: "",
+          fileType: "image",
+          fileUrl: "",
+          linkUrl: "",
+          position: "below_table",
+          width: "",
+          height: "",
+          altText: "",
+          isActive: true,
+          displayOrder: 0,
+          settings: {},
+        });
+        setAdvertisementFile(null);
+        setAdvertisementUploadMethod("upload");
+        loadAdvertisements();
+      } else {
+        setNotificationMessage(`Error: ${data.error || "Failed to update"}`);
+        setNotificationType("error");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error updating advertisement:", error);
+      setNotificationMessage("Failed to update");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+  };
+
+  const handleDeleteAdvertisement = async (advertisementId: number) => {
+    if (!confirm("Delete this advertisement?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/advertisements/${advertisementId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotificationMessage("Advertisement deleted");
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        loadAdvertisements();
+      } else {
+        setNotificationMessage(`Error: ${data.error || "Failed to delete"}`);
+        setNotificationType("error");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error deleting advertisement:", error);
+      setNotificationMessage("Failed to delete");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+  };
+
+  const handleToggleAdvertisementActive = async (advertisementId: number, isActive: boolean) => {
+    try {
+      const response = await fetch(`/api/advertisements/${advertisementId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isActive: !isActive }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotificationMessage(`Advertisement ${!isActive ? "enabled" : "disabled"}`);
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        loadAdvertisements();
+      } else {
+        setNotificationMessage(`Error: ${data.error || "Failed to update"}`);
+        setNotificationType("error");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error toggling advertisement:", error);
+      setNotificationMessage("Failed to update");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, adId: number) => {
+    console.log('Drag start:', adId);
+    setDraggedAdId(adId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/html", adId.toString());
+    e.dataTransfer.setData("application/json", JSON.stringify({ adId }));
+    // Add visual feedback
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "0.5";
+    }
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    setDraggedAdId(null);
+    setDragOverAdId(null);
+    // Reset visual feedback
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "1";
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent, adId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    if (draggedAdId !== null && draggedAdId !== adId) {
+      const adToMove = advertisements.find((ad) => ad.id === draggedAdId);
+      const targetAd = advertisements.find((ad) => ad.id === adId);
+      // Only highlight if same position
+      if (adToMove && targetAd && adToMove.position === targetAd.position) {
+        setDragOverAdId(adId);
+      } else {
+        setDragOverAdId(null);
+      }
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverAdId(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetAdId: number) => {
+    console.log('Drop event triggered:', { draggedAdId, targetAdId, dataTransfer: e.dataTransfer.getData("text/html") });
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverAdId(null);
+
+    // Try to get draggedAdId from dataTransfer if state is null
+    let actualDraggedAdId = draggedAdId;
+    if (actualDraggedAdId === null) {
+      const data = e.dataTransfer.getData("text/html");
+      if (data) {
+        actualDraggedAdId = parseInt(data, 10);
+        console.log('Got draggedAdId from dataTransfer:', actualDraggedAdId);
+      }
+    }
+
+    if (actualDraggedAdId === null || actualDraggedAdId === targetAdId) {
+      console.log('Drop cancelled: same ID or no dragged ID', { actualDraggedAdId, targetAdId });
+      setDraggedAdId(null);
+      return;
+    }
+
+    try {
+      // Get the advertisement being moved
+      const adToMove = advertisements.find((ad) => ad.id === actualDraggedAdId);
+      const targetAd = advertisements.find((ad) => ad.id === targetAdId);
+      
+      console.log('Ads found:', { adToMove: !!adToMove, targetAd: !!targetAd });
+      
+      if (!adToMove || !targetAd) {
+        console.log('Drop cancelled: ads not found');
+        setDraggedAdId(null);
+        return;
+      }
+
+      console.log('Proceeding with reorder...', { fromPosition: adToMove.position, toPosition: targetAd.position });
+
+      // If positions are different, we'll move the ad to the target position and update its position
+      if (adToMove.position !== targetAd.position) {
+        console.log('Different positions - will update position and reorder');
+        
+        // Update the dragged ad's position to match target
+        const positionUpdate = fetch(`/api/advertisements/${actualDraggedAdId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ position: targetAd.position }),
+        });
+
+        await positionUpdate;
+        
+        // Reload to get updated data
+        await loadAdvertisements();
+        
+        // Get updated ad list
+        const updatedAds = await fetch('/api/advertisements').then(r => r.json());
+        const updatedAdToMove = updatedAds.find((ad: Advertisement) => ad.id === actualDraggedAdId);
+        
+        if (!updatedAdToMove) {
+          setDraggedAdId(null);
+          return;
+        }
+
+        // Now get all ads with the same position (target position) and reorder
+        const samePositionAds = updatedAds
+          .filter((ad: Advertisement) => ad.position === targetAd.position)
+          .sort((a: Advertisement, b: Advertisement) => a.display_order - b.display_order);
+
+        const newTargetIndex = samePositionAds.findIndex((a: Advertisement) => a.id === targetAdId);
+        const newDraggedIndex = samePositionAds.findIndex((a: Advertisement) => a.id === actualDraggedAdId);
+
+        if (newTargetIndex === -1 || newDraggedIndex === -1) {
+          setDraggedAdId(null);
+          return;
+        }
+
+        // Create reordered array
+        const reorderedAds = [...samePositionAds];
+        const [movedAd] = reorderedAds.splice(newDraggedIndex, 1);
+        reorderedAds.splice(newTargetIndex, 0, movedAd);
+
+        // Update display_order for all ads in this position
+        const updates: Promise<any>[] = [];
+        reorderedAds.forEach((ad: Advertisement, index: number) => {
+          if (ad.display_order !== index) {
+            updates.push(
+              fetch(`/api/advertisements/${ad.id}`, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ displayOrder: index }),
+              })
+            );
+          }
+        });
+
+        await Promise.all(updates);
+        setDraggedAdId(null);
+        await loadAdvertisements();
+        
+        setNotificationMessage("Advertisement moved and reordered successfully");
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        return;
+      }
+
+      // If same position, proceed with normal reordering
+      // Get all advertisements with the same position, sorted by current order
+      const samePositionAds = advertisements
+        .filter((ad) => ad.position === adToMove.position)
+        .sort((a, b) => a.display_order - b.display_order);
+
+      console.log('Same position ads:', samePositionAds.map(a => ({ id: a.id, order: a.display_order })));
+
+      const draggedIndex = samePositionAds.findIndex((a) => a.id === actualDraggedAdId);
+      const targetIndex = samePositionAds.findIndex((a) => a.id === targetAdId);
+
+      console.log('Indices in same position ads:', { draggedIndex, targetIndex, samePositionCount: samePositionAds.length });
+
+      if (draggedIndex === -1 || targetIndex === -1) {
+        console.log('Drop cancelled: invalid indices', { draggedIndex, targetIndex });
+        setDraggedAdId(null);
+        return;
+      }
+
+      if (draggedIndex === targetIndex) {
+        console.log('Drop cancelled: same index');
+        setDraggedAdId(null);
+        return;
+      }
+
+      // Create a new array with the moved item
+      const reorderedAds = [...samePositionAds];
+      const [movedAd] = reorderedAds.splice(draggedIndex, 1);
+      reorderedAds.splice(targetIndex, 0, movedAd);
+
+      console.log('Reordered ads:', reorderedAds.map((a, i) => ({ id: a.id, newOrder: i })));
+
+      // Update all advertisements' display_order based on their new positions
+      const updates: Promise<any>[] = [];
+      reorderedAds.forEach((ad, index) => {
+        if (ad.display_order !== index) {
+          console.log(`Updating ad ${ad.id} from order ${ad.display_order} to ${index}`);
+          updates.push(
+            fetch(`/api/advertisements/${ad.id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ displayOrder: index }),
+            })
+          );
+        }
+      });
+
+      console.log(`Sending ${updates.length} update requests`);
+
+      // Wait for all updates to complete
+      await Promise.all(updates);
+      console.log('All updates completed, reloading...');
+      setDraggedAdId(null);
+      await loadAdvertisements();
+      console.log('Advertisements reloaded');
+      
+      setNotificationMessage("Display order updated successfully");
+      setNotificationType("success");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 3000);
+    } catch (error) {
+      console.error("Error updating display order:", error);
+      setNotificationMessage("Failed to update order");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+      setDraggedAdId(null);
+    }
+  };
+
   if (!currentAdmin) {
     return (
       <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 4rem)' }}>
@@ -901,6 +1392,16 @@ export default function DashboardPage() {
                 }`}
               >
                 Banners ({banners.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("advertisements")}
+                className={`px-4 py-2 text-xs font-medium transition-colors ${
+                  activeTab === "advertisements"
+                    ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                Advertisements ({advertisements.length})
               </button>
             </div>
           </div>
@@ -1628,6 +2129,519 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Advertisements Tab */}
+          {activeTab === "advertisements" && (
+            <div className="p-4">
+              <div className="mb-4 flex justify-end">
+                <button
+                  onClick={() => {
+                    setShowAddAdvertisementForm(!showAddAdvertisementForm);
+                    setEditingAdvertisement(null);
+                    setAdvertisementFormData({
+                      title: "",
+                      fileType: "image",
+                      fileUrl: "",
+                      linkUrl: "",
+                      position: "below_table",
+                      width: "",
+                      height: "",
+                      altText: "",
+                      isActive: true,
+                      displayOrder: 0,
+                      settings: {},
+                    });
+                    setAdvertisementFile(null);
+                    setAdvertisementUploadMethod("upload");
+                  }}
+                  className="px-3 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
+                >
+                  {showAddAdvertisementForm ? "Cancel" : "+ Add Advertisement"}
+                </button>
+              </div>
+
+              {(showAddAdvertisementForm || editingAdvertisement) && (
+                <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-md border border-slate-200 dark:border-slate-600">
+                  <h3 className="text-xs font-semibold mb-3 text-slate-800 dark:text-slate-200">
+                    {editingAdvertisement ? "Edit Advertisement" : "Add Advertisement"}
+                  </h3>
+                  <form
+                    onSubmit={editingAdvertisement ? (e) => { e.preventDefault(); handleUpdateAdvertisement(editingAdvertisement.id); } : handleAddAdvertisement}
+                    className="space-y-3"
+                  >
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Title (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={advertisementFormData.title}
+                        onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, title: e.target.value })}
+                        placeholder="Advertisement title"
+                        className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        File Type *
+                      </label>
+                      <select
+                        value={advertisementFormData.fileType}
+                        onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, fileType: e.target.value as "image" | "gif" })}
+                        className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                      >
+                        <option value="image">Image (JPG, PNG, WebP)</option>
+                        <option value="gif">GIF</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
+                        Upload Method *
+                      </label>
+                      <div className="flex gap-3 mb-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            value="upload"
+                            checked={advertisementUploadMethod === "upload"}
+                            onChange={(e) => setAdvertisementUploadMethod(e.target.value as "upload" | "url")}
+                            className="rounded border-slate-300 dark:border-slate-600"
+                          />
+                          <span className="text-xs text-slate-700 dark:text-slate-300">Upload File</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            value="url"
+                            checked={advertisementUploadMethod === "url"}
+                            onChange={(e) => setAdvertisementUploadMethod(e.target.value as "upload" | "url")}
+                            className="rounded border-slate-300 dark:border-slate-600"
+                          />
+                          <span className="text-xs text-slate-700 dark:text-slate-300">File URL</span>
+                        </label>
+                      </div>
+
+                      {advertisementUploadMethod === "upload" ? (
+                        <div>
+                          <input
+                            type="file"
+                            accept={advertisementFormData.fileType === "gif" ? "image/gif" : "image/jpeg,image/jpg,image/png,image/webp,image/gif"}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setAdvertisementFile(file);
+                                // Auto-detect file type
+                                if (file.name.toLowerCase().endsWith('.gif')) {
+                                  setAdvertisementFormData({ ...advertisementFormData, fileType: "gif" });
+                                }
+                              }
+                            }}
+                            className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                          />
+                          {advertisementFile && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                              Selected: {advertisementFile.name} ({(advertisementFile.size / 1024).toFixed(2)} KB)
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <input
+                            type="url"
+                            value={advertisementFormData.fileUrl}
+                            onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, fileUrl: e.target.value })}
+                            placeholder="https://example.com/image.jpg"
+                            className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Link URL (optional - where to redirect when clicked)
+                      </label>
+                      <input
+                        type="url"
+                        value={advertisementFormData.linkUrl}
+                        onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, linkUrl: e.target.value })}
+                        placeholder="https://example.com"
+                        className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Position
+                      </label>
+                      <select
+                        value={advertisementFormData.position}
+                        onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, position: e.target.value })}
+                        className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                      >
+                        <option value="below_table">Below Table</option>
+                        <option value="above_table">Above Table</option>
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Width (px, optional)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={advertisementFormData.width}
+                          onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, width: e.target.value })}
+                          placeholder="Auto"
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                          Height (px, optional)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={advertisementFormData.height}
+                          onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, height: e.target.value })}
+                          placeholder="Auto"
+                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Alt Text (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={advertisementFormData.altText}
+                        onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, altText: e.target.value })}
+                        placeholder="Alternative text for accessibility"
+                        className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
+                        <input
+                          type="checkbox"
+                          checked={advertisementFormData.isActive}
+                          onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, isActive: e.target.checked })}
+                          className="rounded border-slate-300 dark:border-slate-600"
+                        />
+                        Active (visible on site)
+                      </label>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                      {editingAdvertisement && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingAdvertisement(null);
+                            setAdvertisementFormData({
+                              title: "",
+                              fileType: "image",
+                              fileUrl: "",
+                              linkUrl: "",
+                              position: "below_table",
+                              width: "",
+                              height: "",
+                              altText: "",
+                              isActive: true,
+                              displayOrder: 0,
+                              settings: {},
+                            });
+                            setAdvertisementFile(null);
+                            setAdvertisementUploadMethod("upload");
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                      <button
+                        type="submit"
+                        className="px-3 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
+                      >
+                        {editingAdvertisement ? "Update" : "Add"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {advertisements.length === 0 ? (
+                <div className="text-center py-8 text-sm text-slate-500 dark:text-slate-400">
+                  No advertisements created
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 w-8"></th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Image</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Title</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Type</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Position</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Status</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Size</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Link</th>
+                        <th className="px-3 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-400">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const targetRow = (e.target as HTMLElement).closest('tr[data-ad-id]');
+                        if (targetRow) {
+                          const targetAdId = parseInt(targetRow.getAttribute('data-ad-id') || '0', 10);
+                          console.log('onDrop triggered on tbody, targetAdId:', targetAdId, 'draggedAdId:', draggedAdId);
+                          if (targetAdId > 0) {
+                            handleDrop(e, targetAdId);
+                          }
+                        }
+                      }}
+                    >
+                      {advertisements
+                        .sort((a, b) => {
+                          // Sort by position first, then by display_order
+                          if (a.position !== b.position) {
+                            return a.position.localeCompare(b.position);
+                          }
+                          return a.display_order - b.display_order;
+                        })
+                        .map((ad) => {
+                          const isDragging = draggedAdId === ad.id;
+                          const isDragOver = dragOverAdId === ad.id;
+                          return (
+                            <tr
+                              key={ad.id}
+                              data-ad-id={ad.id}
+                              draggable={true}
+                              onDragStart={(e) => {
+                                // Only allow drag if started from the drag handle (first td) or the row itself
+                                const target = e.target as HTMLElement;
+                                const currentTarget = e.currentTarget as HTMLElement;
+                                const firstTd = currentTarget.querySelector('td:first-child');
+                                const isFromHandle = firstTd && (firstTd.contains(target) || target === firstTd || target.closest('td:first-child') === firstTd);
+                                const isFromRow = target === currentTarget;
+                                
+                                // Prevent drag if started from buttons, links, images, or other interactive elements
+                                if (target.tagName === 'BUTTON' || target.tagName === 'A' || 
+                                    target.closest('button') || target.closest('a')) {
+                                  e.preventDefault();
+                                  return;
+                                }
+                                
+                                // Allow drag from first TD or TR itself
+                                if (isFromHandle || isFromRow) {
+                                  console.log('Drag start allowed from:', { target: target.tagName, isFromHandle, isFromRow, adId: ad.id });
+                                  handleDragStart(e, ad.id);
+                                } else {
+                                  // Prevent drag from other TDs
+                                  e.preventDefault();
+                                }
+                              }}
+                              onDragEnd={handleDragEnd}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (draggedAdId !== null && draggedAdId !== ad.id) {
+                                  handleDragOver(e, ad.id);
+                                }
+                              }}
+                              onDragLeave={(e) => {
+                                // Only clear dragOver if we're actually leaving the row
+                                const relatedTarget = e.relatedTarget as HTMLElement;
+                                const currentTarget = e.currentTarget as HTMLElement;
+                                if (!relatedTarget || !currentTarget.contains(relatedTarget)) {
+                                  handleDragLeave();
+                                }
+                              }}
+                              className={`border-b border-slate-200 dark:border-slate-700 transition-all ${
+                                isDragging
+                                  ? "opacity-50 cursor-grabbing"
+                                  : isDragOver
+                                  ? "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-300 dark:border-indigo-700 cursor-grabbing"
+                                  : "hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-grab"
+                              }`}
+                            >
+                              <td 
+                                className="px-2 py-3 align-middle cursor-grab active:cursor-grabbing select-none"
+                                draggable={false}
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <div 
+                                  className="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
+                                >
+                                  <svg
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 12 12"
+                                    fill="currentColor"
+                                    className="mb-0.5"
+                                  >
+                                    <circle cx="2" cy="2" r="1" />
+                                    <circle cx="6" cy="2" r="1" />
+                                    <circle cx="10" cy="2" r="1" />
+                                    <circle cx="2" cy="6" r="1" />
+                                    <circle cx="6" cy="6" r="1" />
+                                    <circle cx="10" cy="6" r="1" />
+                                    <circle cx="2" cy="10" r="1" />
+                                    <circle cx="6" cy="10" r="1" />
+                                    <circle cx="10" cy="10" r="1" />
+                                  </svg>
+                                </div>
+                              </td>
+                              <td className="px-3 py-3 align-middle">
+                                <div className="w-16 h-16 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 overflow-hidden shrink-0">
+                                  <img
+                                    src={ad.file_url}
+                                    alt={ad.alt_text || ad.title || "Advertisement"}
+                                    className="max-w-full max-h-full object-contain"
+                                  />
+                                </div>
+                              </td>
+                              <td className="px-3 py-3 align-middle">
+                                <div className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                                  {ad.title || "-"}
+                                </div>
+                                {ad.alt_text && (
+                                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    Alt: {ad.alt_text}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-3 py-3 align-middle">
+                                <span className="px-2 py-0.5 text-xs rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                                  {ad.file_type.toUpperCase()}
+                                </span>
+                              </td>
+                              <td className="px-3 py-3 align-middle">
+                                <span className="text-xs text-slate-600 dark:text-slate-400 capitalize">
+                                  {ad.position.replace("_", " ")}
+                                </span>
+                              </td>
+                              <td className="px-3 py-3 align-middle">
+                                <span className={`px-2 py-0.5 text-xs rounded ${
+                                  ad.is_active
+                                    ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+                                    : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+                                }`}>
+                                  {ad.is_active ? "Active" : "Inactive"}
+                                </span>
+                              </td>
+                              <td className="px-3 py-3 align-middle">
+                                <span className="text-xs text-slate-600 dark:text-slate-400">
+                                  {ad.width && ad.height ? `${ad.width}×${ad.height}` : "Auto"}
+                                </span>
+                              </td>
+                              <td className="px-3 py-3 align-middle">
+                                {ad.link_url ? (
+                                  <a
+                                    href={ad.link_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline truncate block max-w-[150px]"
+                                    title={ad.link_url}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onDragStart={(e) => e.stopPropagation()}
+                                  >
+                                    {ad.link_url.length > 30 ? `${ad.link_url.substring(0, 30)}...` : ad.link_url}
+                                  </a>
+                                ) : (
+                                  <span className="text-xs text-slate-400 dark:text-slate-500">-</span>
+                                )}
+                              </td>
+                              <td className="px-3 py-3 align-middle">
+                                <div 
+                                  className="flex items-center justify-end gap-1" 
+                                  onClick={(e) => e.stopPropagation()}
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  onDragStart={(e) => e.stopPropagation()}
+                                >
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleAdvertisementActive(ad.id, ad.is_active);
+                                    }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    className={`px-2 py-1 text-xs font-medium rounded hover:opacity-80 transition-colors ${
+                                      ad.is_active
+                                        ? "bg-yellow-500 text-white"
+                                        : "bg-green-500 text-white"
+                                    }`}
+                                    title={ad.is_active ? "Disable" : "Enable"}
+                                  >
+                                    {ad.is_active ? "Disable" : "Enable"}
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingAdvertisement(ad);
+                                      setShowAddAdvertisementForm(false);
+                                      setAdvertisementFormData({
+                                        title: ad.title || "",
+                                        fileType: ad.file_type,
+                                        fileUrl: ad.file_url,
+                                        linkUrl: ad.link_url || "",
+                                        position: ad.position,
+                                        width: ad.width?.toString() || "",
+                                        height: ad.height?.toString() || "",
+                                        altText: ad.alt_text || "",
+                                        isActive: ad.is_active,
+                                        displayOrder: 0,
+                                        settings: ad.settings || {},
+                                      });
+                                      setAdvertisementFile(null);
+                                      setAdvertisementUploadMethod(ad.file_path ? "upload" : "url");
+                                    }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    className="px-2 py-1 text-xs font-medium bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteAdvertisement(ad.id);
+                                    }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    className="px-2 py-1 text-xs font-medium bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

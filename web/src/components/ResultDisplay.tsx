@@ -1,6 +1,7 @@
 "use client";
 
 import { type FC } from "react";
+import AdvertisementDisplay from "./AdvertisementDisplay";
 
 // ResultDisplay component for showing check results
 
@@ -524,6 +525,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
 
   return (
     <div className="max-w-6xl mx-auto mt-8 animate-fade-in">
+      <AdvertisementDisplay position="above_table" />
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
           <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
@@ -645,6 +647,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
           </table>
         </div>
       </div>
+      <AdvertisementDisplay position="below_table" />
     </div>
   );
 };
