@@ -32,7 +32,6 @@ export default function CheckForm({ title, description, placeholder, onSubmit, o
   }, [onSubmit]);
 
   // Auto-check when component mounts if host exists in localStorage
-  // This effect runs when onSubmit is ready
   useEffect(() => {
     // Only auto-check once per component mount
     if (hasAutoCheckedRef.current) {
@@ -45,7 +44,7 @@ export default function CheckForm({ title, description, placeholder, onSubmit, o
       : "";
 
     // Only proceed if we have a stored host and onSubmit is available
-    if (storedHost && onSubmit) {
+    if (storedHost && onSubmitRef.current) {
       hasAutoCheckedRef.current = true;
       
       // Use requestAnimationFrame + setTimeout to ensure everything is ready
@@ -57,10 +56,10 @@ export default function CheckForm({ title, description, placeholder, onSubmit, o
             : "";
           
           // Check if onSubmit is available and call it
-          if (currentStoredHost && onSubmit) {
+          if (currentStoredHost && onSubmitRef.current) {
             setLoading(true);
             setError("");
-            onSubmit(currentStoredHost).catch((err) => {
+            onSubmitRef.current(currentStoredHost).catch((err) => {
               setError(err instanceof Error ? err.message : "An error occurred");
             }).finally(() => {
               setLoading(false);
@@ -69,7 +68,7 @@ export default function CheckForm({ title, description, placeholder, onSubmit, o
         }, 300);
       });
     }
-  }, [onSubmit]); // Run when onSubmit is ready (and on mount)
+  }, []); // Run only once on mount
 
   // Save host to localStorage whenever it changes
   useEffect(() => {

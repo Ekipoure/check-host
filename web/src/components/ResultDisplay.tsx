@@ -2,6 +2,7 @@
 
 import { type FC } from "react";
 import AdvertisementDisplay from "./AdvertisementDisplay";
+import IPLocationMap from "./IPLocationMap";
 
 // ResultDisplay component for showing check results
 
@@ -248,70 +249,97 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
     return (
       <div className="max-w-6xl mx-auto mt-6 sm:mt-8 px-2 sm:px-4 animate-fade-in">
         <AdvertisementDisplay position="above_table" />
-        <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              IP Information
-            </h2>
-          </div>
-          <div className="p-3 sm:p-4 md:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {ipInfoData.map((info: any, index: number) => (
-                <div key={index} className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-3 sm:p-4 border border-slate-200 dark:border-slate-700">
-                  <div className="space-y-1.5 sm:space-y-2">
-                    {info.ip && (
-                      <div>
-                        <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">IP Address</div>
-                        <div className="text-xs sm:text-sm font-mono text-slate-900 dark:text-slate-100 break-all">{info.ip}</div>
+        <div className="space-y-4 sm:space-y-6">
+          {ipInfoData.map((info: any, index: number) => {
+            const hasCoordinates = info.latitude && info.longitude;
+            return (
+              <div key={index} className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
+                  <h3 className="text-base sm:text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    {info.source || `Source ${index + 1}`}
+                  </h3>
+                </div>
+                <div className="p-3 sm:p-4 md:p-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    {/* IP Information Card */}
+                    <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-3 sm:p-4 border border-slate-200 dark:border-slate-700">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        {info.ip && (
+                          <div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">IP Address</div>
+                            <div className="text-xs sm:text-sm font-mono text-slate-900 dark:text-slate-100 break-all">{info.ip}</div>
+                          </div>
+                        )}
+                        {info.country && (
+                          <div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Country</div>
+                            <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.country} {info.countryCode ? `(${info.countryCode})` : ''}</div>
+                          </div>
+                        )}
+                        {info.city && (
+                          <div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">City</div>
+                            <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.city}</div>
+                          </div>
+                        )}
+                        {info.region && (
+                          <div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Region</div>
+                            <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.region}</div>
+                          </div>
+                        )}
+                        {info.isp && (
+                          <div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">ISP</div>
+                            <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.isp}</div>
+                          </div>
+                        )}
+                        {info.organization && (
+                          <div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Organization</div>
+                            <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.organization}</div>
+                          </div>
+                        )}
+                        {info.timezone && (
+                          <div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Timezone</div>
+                            <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.timezone}</div>
+                          </div>
+                        )}
+                        {info.source && (
+                          <div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Source</div>
+                            <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.source}</div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                    {info.country && (
-                      <div>
-                        <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Country</div>
-                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.country} {info.countryCode ? `(${info.countryCode})` : ''}</div>
+                    </div>
+                    {/* Map */}
+                    {hasCoordinates ? (
+                      <div className="w-full">
+                        <IPLocationMap
+                          latitude={info.latitude}
+                          longitude={info.longitude}
+                          city={info.city}
+                          country={info.country}
+                          className="w-full h-full"
+                        />
                       </div>
-                    )}
-                    {info.city && (
-                      <div>
-                        <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">City</div>
-                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.city}</div>
-                      </div>
-                    )}
-                    {info.region && (
-                      <div>
-                        <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Region</div>
-                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.region}</div>
-                      </div>
-                    )}
-                    {info.isp && (
-                      <div>
-                        <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">ISP</div>
-                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.isp}</div>
-                      </div>
-                    )}
-                    {info.organization && (
-                      <div>
-                        <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Organization</div>
-                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.organization}</div>
-                      </div>
-                    )}
-                    {info.timezone && (
-                      <div>
-                        <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Timezone</div>
-                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.timezone}</div>
-                      </div>
-                    )}
-                    {info.source && (
-                      <div>
-                        <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Source</div>
-                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.source}</div>
+                    ) : (
+                      <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-3 sm:p-4 border border-slate-200 dark:border-slate-700 flex items-center justify-center min-h-[300px]">
+                        <div className="text-center text-slate-500 dark:text-slate-400">
+                          <svg className="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                          </svg>
+                          <p className="text-sm">Location data not available</p>
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            );
+          })}
         </div>
         <AdvertisementDisplay position="below_table" />
       </div>

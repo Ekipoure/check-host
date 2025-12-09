@@ -55,13 +55,25 @@ const services = [
   },
 ];
 
+const STORAGE_KEY = "check-ip-host-value";
+
 export default function Home() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+    const storedValue = localStorage.getItem(STORAGE_KEY);
+    if (storedValue) {
+      setSearchValue(storedValue);
+    }
+  }, []);
 
   useEffect(() => {
     // Check if user is admin
@@ -74,6 +86,18 @@ export default function Home() {
         setIsAdmin(false);
       });
   }, []);
+
+  // Save searchValue to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (searchValue.trim()) {
+        localStorage.setItem(STORAGE_KEY, searchValue);
+      } else {
+        // Remove from localStorage if cleared
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+  }, [searchValue]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,7 +166,7 @@ export default function Home() {
                   {/* Search Button */}
                   <button
                     type="submit"
-                    disabled={isLoading || !searchValue.trim()}
+                    disabled={!isMounted || isLoading || !searchValue.trim()}
                     className="flex-shrink-0 w-full sm:w-auto px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-lg sm:rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg group text-sm sm:text-base"
                   >
                     {isLoading ? (
