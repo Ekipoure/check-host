@@ -34,7 +34,7 @@ export default function HTTPPage() {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-6 sm:py-8 md:py-12 px-2 sm:px-4 md:px-6 lg:px-8">
       <CheckForm
         title="HTTP Check"
         description="Check website's response performance and availability from many countries and datacenters"

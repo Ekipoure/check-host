@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import CheckForm from "@/components/CheckForm";
 import ResultDisplay from "@/components/ResultDisplay";
 
 export default function IPInfoPage() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const initialHost = searchParams.get("host") || "";
 
-  const handleCheck = async (host: string) => {
+  const handleCheck = useCallback(async (host: string) => {
     setLoading(true);
     setResult(null);
     
@@ -26,10 +29,17 @@ export default function IPInfoPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Auto-check if host is provided in URL
+  useEffect(() => {
+    if (initialHost) {
+      handleCheck(initialHost);
+    }
+  }, [initialHost, handleCheck]);
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-6 sm:py-8 md:py-12 px-2 sm:px-4 md:px-6 lg:px-8">
       <CheckForm
         title="IP Information"
         description="Get geolocation data of IP address or hostname: country, region, city, timezone, ISP, and organization"

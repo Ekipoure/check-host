@@ -102,43 +102,44 @@ export default function CheckForm({ title, description, placeholder, onSubmit, o
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-4 border border-slate-200 dark:border-slate-700">
-        <div className="flex items-center mb-3">
-          <span className="text-2xl mr-3">{icon}</span>
-          <div>
-            <h1 className="text-xl font-bold text-slate-800 dark:text-slate-200">{title}</h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-0.5 text-sm">{description}</p>
+    <div className="max-w-6xl mx-auto px-2 sm:px-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 border border-slate-200 dark:border-slate-700">
+        <div className="flex items-start sm:items-center mb-3 sm:mb-4">
+          <span className="text-xl sm:text-2xl mr-2 sm:mr-3 flex-shrink-0">{icon}</span>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-200 break-words">{title}</h1>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-0.5 break-words">{description}</p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div>
-            <label htmlFor="host" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label htmlFor="host" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
               Host or IP Address
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 id="host"
                 type="text"
                 value={host}
                 onChange={(e) => setHost(e.target.value)}
                 placeholder={placeholder}
-                className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 min-w-0"
                 disabled={loading}
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm sm:text-base whitespace-nowrap"
               >
                 {loading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Checking...
+                    <span className="hidden sm:inline">Checking...</span>
+                    <span className="sm:hidden">...</span>
                   </span>
                 ) : (
                   "Check"
@@ -146,12 +147,12 @@ export default function CheckForm({ title, description, placeholder, onSubmit, o
               </button>
             </div>
             {error && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+              <p className="mt-2 text-xs sm:text-sm text-red-600 dark:text-red-400 break-words">{error}</p>
             )}
           </div>
 
           {options && (
-            <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+            <div className="pt-2 sm:pt-3 border-t border-slate-200 dark:border-slate-700">
               {options}
             </div>
           )}

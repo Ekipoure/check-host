@@ -193,8 +193,6 @@ export default function DashboardPage() {
     fileUrl: "",
     linkUrl: "",
     position: "below_table",
-    width: "",
-    height: "",
     altText: "",
     isActive: true,
     displayOrder: 0,
@@ -875,8 +873,6 @@ export default function DashboardPage() {
       formData.append("file_url", advertisementFormData.fileUrl);
       formData.append("link_url", advertisementFormData.linkUrl);
       formData.append("position", advertisementFormData.position);
-      if (advertisementFormData.width) formData.append("width", advertisementFormData.width);
-      if (advertisementFormData.height) formData.append("height", advertisementFormData.height);
       formData.append("alt_text", advertisementFormData.altText);
       formData.append("is_active", advertisementFormData.isActive.toString());
       formData.append("display_order", "0");
@@ -905,8 +901,6 @@ export default function DashboardPage() {
           fileUrl: "",
           linkUrl: "",
           position: "below_table",
-          width: "",
-          height: "",
           altText: "",
           isActive: true,
           displayOrder: 0,
@@ -946,8 +940,6 @@ export default function DashboardPage() {
       formData.append("file_url", advertisementFormData.fileUrl);
       formData.append("link_url", advertisementFormData.linkUrl);
       formData.append("position", advertisementFormData.position);
-      if (advertisementFormData.width) formData.append("width", advertisementFormData.width);
-      if (advertisementFormData.height) formData.append("height", advertisementFormData.height);
       formData.append("alt_text", advertisementFormData.altText);
       formData.append("is_active", advertisementFormData.isActive.toString());
       // display_order is managed via dropdown in table, not in form
@@ -976,8 +968,6 @@ export default function DashboardPage() {
           fileUrl: "",
           linkUrl: "",
           position: "below_table",
-          width: "",
-          height: "",
           altText: "",
           isActive: true,
           displayOrder: 0,
@@ -2444,8 +2434,6 @@ export default function DashboardPage() {
                       fileUrl: "",
                       linkUrl: "",
                       position: "below_table",
-                      width: "",
-                      height: "",
                       altText: "",
                       isActive: true,
                       displayOrder: 0,
@@ -2586,36 +2574,6 @@ export default function DashboardPage() {
                       </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          Width (px, optional)
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={advertisementFormData.width}
-                          onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, width: e.target.value })}
-                          placeholder="Auto"
-                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          Height (px, optional)
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={advertisementFormData.height}
-                          onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, height: e.target.value })}
-                          placeholder="Auto"
-                          className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                        />
-                      </div>
-                    </div>
-
                     <div>
                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                         Alt Text (optional)
@@ -2653,8 +2611,6 @@ export default function DashboardPage() {
                               fileUrl: "",
                               linkUrl: "",
                               position: "below_table",
-                              width: "",
-                              height: "",
                               altText: "",
                               isActive: true,
                               displayOrder: 0,
@@ -2906,8 +2862,6 @@ export default function DashboardPage() {
                                         fileUrl: ad.file_url,
                                         linkUrl: ad.link_url || "",
                                         position: ad.position,
-                                        width: ad.width?.toString() || "",
-                                        height: ad.height?.toString() || "",
                                         altText: ad.alt_text || "",
                                         isActive: ad.is_active,
                                         displayOrder: 0,

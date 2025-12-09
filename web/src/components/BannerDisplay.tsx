@@ -130,7 +130,7 @@ export default function BannerDisplay({ initialBanners = [] }: BannerDisplayProp
 
     const textStyle: React.CSSProperties = {
       color: banner.text_color,
-      fontSize: `${banner.font_size}px`,
+      fontSize: `clamp(${Math.max(banner.font_size * 0.7, 12)}px, ${banner.font_size}px, ${banner.font_size * 1.2}px)`,
       lineHeight: "1.5",
       display: "inline-block",
     };
@@ -228,8 +228,8 @@ export default function BannerDisplay({ initialBanners = [] }: BannerDisplayProp
         }
       });
 
-      // Navigation height is 64px (4rem)
-      const navigationHeight = 64;
+      // Navigation height is responsive: 56px on mobile (h-14), 64px on desktop (h-16)
+      const navigationHeight = window.innerWidth >= 640 ? 64 : 56;
 
       // Update Navigation position (below top banners)
       const nav = document.querySelector('nav');

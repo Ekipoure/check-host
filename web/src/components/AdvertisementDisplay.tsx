@@ -53,62 +53,48 @@ export default function AdvertisementDisplay({ position = "below_table" }: Adver
   }
 
   // Different styles for different positions
-  const getContainerClasses = () => {
-    return "max-w-6xl mx-auto mt-8 animate-fade-in";
-  };
-
   const getBoxClasses = () => {
-    return "bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden";
-  };
-
-  const getContentClasses = () => {
-    return "px-6 py-4 flex flex-wrap justify-center gap-4";
+    const spacing = position === "above_table" ? "mt-6 sm:mt-8 mb-6 sm:mb-8" : "mt-6 sm:mt-8";
+    return `w-full bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden ${spacing}`;
   };
 
   return (
-    <div className={getContainerClasses()} data-ad-position={position}>
+    <div data-ad-position={position} className="w-full">
       <div className={getBoxClasses()}>
-        <div className={getContentClasses()}>
-          {advertisements.map((ad) => {
-            const adContent = (
-              <div>
-                {ad.title && (
-                  <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2 text-center">
-                    {ad.title}
-                  </h3>
-                )}
-                <img
-                  src={ad.file_url}
-                  alt={ad.alt_text || ad.title || "Advertisement"}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 hover:opacity-90 transition-opacity"
-                  style={{
-                    maxWidth: ad.width ? `${ad.width}px` : "100%",
-                    maxHeight: ad.height ? `${ad.height}px` : "auto",
-                    width: ad.width ? `${ad.width}px` : "auto",
-                    height: ad.height ? `${ad.height}px` : "auto",
-                  }}
-                />
-              </div>
-            );
+        {advertisements.map((ad) => {
+          const adContent = (
+            <div className="w-full">
+              {ad.title && (
+                <h3 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1.5 sm:mb-2 text-center px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 md:pt-6">
+                  {ad.title}
+                </h3>
+              )}
+              <img
+                src={ad.file_url}
+                alt={ad.alt_text || ad.title || "Advertisement"}
+                className="block h-auto max-h-[150px] object-cover rounded-b-xl sm:rounded-b-2xl hover:opacity-90 transition-opacity"
+                style={{ width: 'calc(100% + 2px)', maxWidth: 'calc(100% + 2px)', marginLeft: '-1px', marginRight: '-1px' }}
+              />
+            </div>
+          );
 
-            return (
-              <div key={ad.id} className="flex justify-center">
-                {ad.link_url ? (
-                  <Link
-                    href={ad.link_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block"
-                  >
-                    {adContent}
-                  </Link>
-                ) : (
-                  adContent
-                )}
-              </div>
-            );
-          })}
-        </div>
+          return (
+            <div key={ad.id} className="w-full">
+              {ad.link_url ? (
+                <Link
+                  href={ad.link_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full"
+                >
+                  {adContent}
+                </Link>
+              ) : (
+                adContent
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

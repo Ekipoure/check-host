@@ -159,14 +159,14 @@ function processDNSResults(dnsResults: any[]): {
 const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto mt-8">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
+      <div className="max-w-6xl mx-auto mt-6 sm:mt-8 px-2 sm:px-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-center">
-            <svg className="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-6 w-6 sm:h-8 sm:w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span className="ml-3 text-slate-600 dark:text-slate-400">Processing...</span>
+            <span className="ml-3 text-sm sm:text-base text-slate-600 dark:text-slate-400">Processing...</span>
           </div>
         </div>
       </div>
@@ -179,15 +179,15 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
 
   if (result.error) {
     return (
-      <div className="max-w-6xl mx-auto mt-8">
-        <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl shadow-xl p-8 border border-red-200 dark:border-red-800">
+      <div className="max-w-6xl mx-auto mt-6 sm:mt-8 px-2 sm:px-4">
+        <div className="bg-red-50 dark:bg-red-900/20 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 border border-red-200 dark:border-red-800">
           <div className="flex items-center">
-            <svg className="w-6 h-6 text-red-600 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400 mr-2 sm:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h2 className="text-xl font-bold text-red-800 dark:text-red-200">Error</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-red-800 dark:text-red-200">Error</h2>
           </div>
-          <p className="mt-2 text-red-700 dark:text-red-300">{result.error}</p>
+          <p className="mt-2 text-sm sm:text-base text-red-700 dark:text-red-300 break-words">{result.error}</p>
         </div>
       </div>
     );
@@ -211,9 +211,9 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
   
   if (results.length === 0) {
     return (
-      <div className="max-w-6xl mx-auto mt-8">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
-          <p className="text-slate-600 dark:text-slate-400 text-center">No results available</p>
+      <div className="max-w-6xl mx-auto mt-6 sm:mt-8 px-2 sm:px-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700">
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 text-center">No results available</p>
         </div>
       </div>
     );
@@ -237,73 +237,74 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
 
     if (ipInfoData.length === 0) {
       return (
-        <div className="max-w-6xl mx-auto mt-8">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
-            <p className="text-slate-600 dark:text-slate-400 text-center">No IP information available</p>
+        <div className="max-w-6xl mx-auto mt-6 sm:mt-8 px-2 sm:px-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700">
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 text-center">No IP information available</p>
           </div>
         </div>
       );
     }
 
     return (
-      <div className="max-w-6xl mx-auto mt-8 animate-fade-in">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+      <div className="max-w-6xl mx-auto mt-6 sm:mt-8 px-2 sm:px-4 animate-fade-in">
+        <AdvertisementDisplay position="above_table" />
+        <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               IP Information
             </h2>
           </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="p-3 sm:p-4 md:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {ipInfoData.map((info: any, index: number) => (
-                <div key={index} className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
-                  <div className="space-y-2">
+                <div key={index} className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-3 sm:p-4 border border-slate-200 dark:border-slate-700">
+                  <div className="space-y-1.5 sm:space-y-2">
                     {info.ip && (
                       <div>
                         <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">IP Address</div>
-                        <div className="text-sm font-mono text-slate-900 dark:text-slate-100">{info.ip}</div>
+                        <div className="text-xs sm:text-sm font-mono text-slate-900 dark:text-slate-100 break-all">{info.ip}</div>
                       </div>
                     )}
                     {info.country && (
                       <div>
                         <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Country</div>
-                        <div className="text-sm text-slate-900 dark:text-slate-100">{info.country} {info.countryCode ? `(${info.countryCode})` : ''}</div>
+                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.country} {info.countryCode ? `(${info.countryCode})` : ''}</div>
                       </div>
                     )}
                     {info.city && (
                       <div>
                         <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">City</div>
-                        <div className="text-sm text-slate-900 dark:text-slate-100">{info.city}</div>
+                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.city}</div>
                       </div>
                     )}
                     {info.region && (
                       <div>
                         <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Region</div>
-                        <div className="text-sm text-slate-900 dark:text-slate-100">{info.region}</div>
+                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.region}</div>
                       </div>
                     )}
                     {info.isp && (
                       <div>
                         <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">ISP</div>
-                        <div className="text-sm text-slate-900 dark:text-slate-100">{info.isp}</div>
+                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.isp}</div>
                       </div>
                     )}
                     {info.organization && (
                       <div>
                         <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Organization</div>
-                        <div className="text-sm text-slate-900 dark:text-slate-100">{info.organization}</div>
+                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.organization}</div>
                       </div>
                     )}
                     {info.timezone && (
                       <div>
                         <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Timezone</div>
-                        <div className="text-sm text-slate-900 dark:text-slate-100">{info.timezone}</div>
+                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.timezone}</div>
                       </div>
                     )}
                     {info.source && (
                       <div>
                         <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Source</div>
-                        <div className="text-sm text-slate-900 dark:text-slate-100">{info.source}</div>
+                        <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.source}</div>
                       </div>
                     )}
                   </div>
@@ -312,6 +313,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
             </div>
           </div>
         </div>
+        <AdvertisementDisplay position="below_table" />
       </div>
     );
   }
@@ -510,9 +512,9 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
 
   if (tableData.length === 0) {
     return (
-      <div className="max-w-6xl mx-auto mt-8">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
-          <p className="text-slate-600 dark:text-slate-400 text-center">
+      <div className="max-w-6xl mx-auto mt-6 sm:mt-8 px-2 sm:px-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700">
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 text-center">
             No results available
             <span className="block text-xs mt-2 text-slate-500">
               Check type: {checkType}
@@ -524,56 +526,58 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto mt-8 animate-fade-in">
+    <div className="max-w-6xl mx-auto mt-6 sm:mt-8 px-2 sm:px-4 animate-fade-in">
       <AdvertisementDisplay position="above_table" />
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+      <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Results
           </h2>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
-              <tr>
-                {tableHeaders.map((header, idx) => (
-                  <th key={idx} className="px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-              {tableData.map((row, index) => (
-                <tr
-                  key={index}
-                  className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <span className="text-xl mr-2" role="img" aria-label={row.countryCode}>
-                        {row.countryEmoji || getCountryFlag(row.countryCode)}
-                      </span>
-                      <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                        {row.location}
-                      </span>
-                    </div>
-                  </td>
+        <div className="overflow-x-auto -mx-2 sm:mx-0">
+          <div className="inline-block min-w-full align-middle">
+            <div className="overflow-hidden">
+              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                <thead className="bg-slate-50 dark:bg-slate-900/50">
+                  <tr>
+                    {tableHeaders.map((header, idx) => (
+                      <th key={idx} className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                  {tableData.map((row, index) => (
+                    <tr
+                      key={index}
+                      className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150"
+                    >
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <span className="text-base sm:text-lg md:text-xl mr-1.5 sm:mr-2 flex-shrink-0" role="img" aria-label={row.countryCode}>
+                            {row.countryEmoji || getCountryFlag(row.countryCode)}
+                          </span>
+                          <span className="text-xs sm:text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                            {row.location}
+                          </span>
+                        </div>
+                      </td>
                   {checkType === 'ping' && (
                     <>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-slate-900 dark:text-slate-100 font-medium">
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-medium">
                           {row.result}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-slate-700 dark:text-slate-300 font-mono">
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono">
                           {row.rtt}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-slate-700 dark:text-slate-300 font-mono">
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono break-all">
                           {row.ip}
                         </span>
                       </td>
@@ -581,23 +585,23 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
                   )}
                   {checkType === 'http' && (
                     <>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`text-sm font-medium ${row.result.includes('OK') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className={`text-xs sm:text-sm font-medium ${row.result.includes('OK') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                           {row.result}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-slate-700 dark:text-slate-300 font-mono">
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono">
                           {row.time}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-slate-700 dark:text-slate-300 font-mono">
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono">
                           {row.statusCode}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-slate-700 dark:text-slate-300 font-mono">
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono break-all">
                           {row.ip}
                         </span>
                       </td>
@@ -605,18 +609,18 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
                   )}
                   {(checkType === 'tcp' || checkType === 'udp') && (
                     <>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`text-sm font-medium ${row.result.includes('OK') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className={`text-xs sm:text-sm font-medium ${row.result.includes('OK') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                           {row.result}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-slate-700 dark:text-slate-300 font-mono">
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono">
                           {row.time}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-slate-700 dark:text-slate-300 font-mono">
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono break-all">
                           {row.ip}
                         </span>
                       </td>
@@ -624,18 +628,18 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
                   )}
                   {checkType === 'dns' && (
                     <>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-slate-700 dark:text-slate-300 font-mono">
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono break-all">
                           {row.aRecords}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-slate-700 dark:text-slate-300 font-mono">
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono break-all">
                           {row.aaaaRecords}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-slate-700 dark:text-slate-300 font-mono">
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono">
                           {row.ttl}
                         </span>
                       </td>
@@ -645,6 +649,8 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
               ))}
             </tbody>
           </table>
+            </div>
+          </div>
         </div>
       </div>
       <AdvertisementDisplay position="below_table" />

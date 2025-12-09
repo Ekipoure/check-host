@@ -94,3 +94,30 @@ body {
 .gradient-bg-6 {
   background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
 }
+
+/* Responsive improvements */
+@media (max-width: 640px) {
+  /* Ensure text doesn't overflow on small screens */
+  * {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* Better table scrolling on mobile */
+  table {
+    font-size: 0.875rem;
+  }
+  
+  /* Prevent horizontal scroll on very small screens */
+  body {
+    overflow-x: hidden;
+  }
+}
+
+/* Better touch targets on mobile */
+@media (max-width: 768px) {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
