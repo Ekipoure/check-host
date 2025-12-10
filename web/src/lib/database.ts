@@ -283,6 +283,91 @@ export async function initializeDatabase() {
       )
     `);
 
+    // Create site_identity table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS site_identity (
+        id SERIAL PRIMARY KEY,
+        site_title TEXT DEFAULT 'Network Monitoring & Diagnostics',
+        site_subtitle TEXT DEFAULT 'Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide',
+        logo_text TEXT DEFAULT 'Check Host',
+        logo_initials TEXT DEFAULT 'CH',
+        meta_title TEXT DEFAULT 'Check Host - Network Monitoring & Diagnostics',
+        meta_description TEXT DEFAULT 'Online tool for checking availability of websites, servers, hosts and IP addresses',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Add missing columns if they don't exist (migration)
+    const columnsToAdd = [
+      { name: 'site_title', defaultValue: 'Network Monitoring & Diagnostics' },
+      { name: 'site_subtitle', defaultValue: 'Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide' },
+      { name: 'logo_text', defaultValue: 'Check Host' },
+      { name: 'logo_initials', defaultValue: 'CH' },
+      { name: 'meta_title', defaultValue: 'Check Host - Network Monitoring & Diagnostics' },
+      { name: 'meta_description', defaultValue: 'Online tool for checking availability of websites, servers, hosts and IP addresses' },
+      { name: 'logo_url', defaultValue: null },
+      { name: 'favicon_url', defaultValue: null },
+    ];
+
+    for (const column of columnsToAdd) {
+      try {
+        const columnCheck = await client.query(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name='site_identity' AND column_name=$1
+        `, [column.name]);
+        
+        if (columnCheck.rows.length === 0) {
+          await client.query(`
+            ALTER TABLE site_identity 
+            ADD COLUMN ${column.name} TEXT ${column.defaultValue !== null ? `DEFAULT $1` : ''}
+          `, column.defaultValue !== null ? [column.defaultValue] : []);
+          console.log(`✅ Added ${column.name} column to site_identity table`);
+        }
+      } catch (error: any) {
+        console.warn(`Warning adding ${column.name} column:`, error.message);
+      }
+    }
+
+    // Insert default site identity if none exists
+    const siteIdentityCheck = await client.query('SELECT COUNT(*) FROM site_identity');
+    if (parseInt(siteIdentityCheck.rows[0].count) === 0) {
+      await client.query(`
+        INSERT INTO site_identity (
+          site_title, site_subtitle, logo_text, logo_initials, meta_title, meta_description, logo_url, favicon_url
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `, [
+        'Network Monitoring & Diagnostics',
+        'Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide',
+        'Check Host',
+        'CH',
+        'Check Host - Network Monitoring & Diagnostics',
+        'Online tool for checking availability of websites, servers, hosts and IP addresses',
+        '/uploads/site-identity/favicon-1765353943561-u51tipycn.png',
+        '/uploads/site-identity/favicon-1765353943561-u51tipycn.png'
+      ]);
+      console.log('✅ Default site identity created');
+    } else {
+      // Update existing record to set logo and favicon URLs if they are null
+      const existingCheck = await client.query('SELECT logo_url, favicon_url FROM site_identity ORDER BY id LIMIT 1');
+      if (existingCheck.rows.length > 0) {
+        const existing = existingCheck.rows[0];
+        if (!existing.logo_url || !existing.favicon_url) {
+          await client.query(`
+            UPDATE site_identity SET
+              logo_url = COALESCE(logo_url, $1),
+              favicon_url = COALESCE(favicon_url, $2)
+            WHERE id = (SELECT id FROM site_identity ORDER BY id LIMIT 1)
+          `, [
+            '/uploads/site-identity/favicon-1765353943561-u51tipycn.png',
+            '/uploads/site-identity/favicon-1765353943561-u51tipycn.png'
+          ]);
+          console.log('✅ Logo and favicon URLs set');
+        }
+      }
+    }
+
     // Create indexes
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_agents_status ON agents(status)

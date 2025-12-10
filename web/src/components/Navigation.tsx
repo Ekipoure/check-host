@@ -13,6 +13,10 @@ const navItems = [
   { name: "UDP Port", href: "/udp", icon: "📡" },
 ];
 
+// Hardcoded logo and site identity
+const LOGO_URL = "/uploads/site-identity/favicon-1765353943561-u51tipycn.png";
+const LOGO_TEXT = "Pishdad";
+
 export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
@@ -46,11 +50,13 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-1.5 sm:space-x-2 group min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center transform group-hover:scale-110 transition-transform flex-shrink-0">
-              <span className="text-white text-base sm:text-xl font-bold">CH</span>
-            </div>
+            <img
+              src={LOGO_URL}
+              alt={LOGO_TEXT}
+              className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain transform group-hover:scale-110 transition-transform flex-shrink-0"
+            />
             <span className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent truncate">
-              Check Host
+              {LOGO_TEXT}
             </span>
           </Link>
 

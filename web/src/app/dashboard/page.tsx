@@ -118,7 +118,7 @@ interface Admin {
   updated_at: string;
 }
 
-type TabType = "agents" | "admins" | "banners" | "advertisements";
+type TabType = "agents" | "admins" | "banners" | "advertisements" | "site-identity";
 
 interface PartialLink {
   text: string;
@@ -200,6 +200,15 @@ export default function DashboardPage() {
   });
   const [advertisementFile, setAdvertisementFile] = useState<File | null>(null);
   const [advertisementUploadMethod, setAdvertisementUploadMethod] = useState<"upload" | "url">("upload");
+  const [siteIdentity, setSiteIdentity] = useState({
+    site_title: "",
+    site_subtitle: "",
+    logo_text: "",
+    logo_initials: "",
+    logo_url: null as string | null,
+    favicon_url: null as string | null,
+  });
+  const [siteIdentityLoading, setSiteIdentityLoading] = useState(false);
   const [draggedAdId, setDraggedAdId] = useState<number | null>(null);
   const [dragOverAdId, setDragOverAdId] = useState<number | null>(null);
   const [draggedAgentId, setDraggedAgentId] = useState<string | null>(null);
@@ -258,6 +267,7 @@ export default function DashboardPage() {
           loadAdmins();
           loadBanners();
           loadAdvertisements();
+          loadSiteIdentity();
         }
       })
       .catch(() => {
@@ -298,6 +308,73 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error("Error loading advertisements:", error);
+    }
+  };
+
+  const loadSiteIdentity = async () => {
+    try {
+      const response = await fetch("/api/site-identity");
+      const data = await response.json();
+      if (data.success && data.siteIdentity) {
+        setSiteIdentity({
+          site_title: data.siteIdentity.site_title || "",
+          site_subtitle: data.siteIdentity.site_subtitle || "",
+          logo_text: data.siteIdentity.logo_text || "",
+          logo_initials: data.siteIdentity.logo_initials || "",
+          logo_url: data.siteIdentity.logo_url || null,
+          favicon_url: data.siteIdentity.favicon_url || null,
+        });
+      }
+    } catch (error) {
+      console.error("Error loading site identity:", error);
+    }
+  };
+
+  const handleSaveSiteIdentity = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSiteIdentityLoading(true);
+
+    try {
+      // Generate meta_title and meta_description automatically from site_title and logo_text
+      const meta_title = `${siteIdentity.logo_text || "Check Host"} - ${siteIdentity.site_title || "Network Monitoring & Diagnostics"}`;
+      const meta_description = siteIdentity.site_subtitle || "Online tool for checking availability of websites, servers, hosts and IP addresses";
+
+      const response = await fetch("/api/site-identity", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...siteIdentity,
+          meta_title,
+          meta_description,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotificationMessage("Site identity updated successfully");
+        setNotificationType("success");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+        loadSiteIdentity();
+        // Reload page to update favicon
+        window.location.reload();
+      } else {
+        setNotificationMessage(`Error: ${data.error || "Failed to update site identity"}`);
+        setNotificationType("error");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error updating site identity:", error);
+      setNotificationMessage("Failed to update site identity");
+      setNotificationType("error");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    } finally {
+      setSiteIdentityLoading(false);
     }
   };
 
@@ -1666,6 +1743,16 @@ export default function DashboardPage() {
               >
                 Advertisements ({advertisements.length})
               </button>
+              <button
+                onClick={() => setActiveTab("site-identity")}
+                className={`px-4 py-2 text-xs font-medium transition-colors ${
+                  activeTab === "site-identity"
+                    ? "text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                Site Identity
+              </button>
             </div>
           </div>
 
@@ -2894,6 +2981,117 @@ export default function DashboardPage() {
                   </table>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Site Identity Tab */}
+          {activeTab === "site-identity" && (
+            <div className="p-4">
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">
+                  مدیریت هویت سایت
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
+                  متن‌های اصلی سایت را در این بخش تغییر دهید
+                </p>
+              </div>
+
+              <form onSubmit={handleSaveSiteIdentity} className="space-y-4">
+                <div className="bg-slate-50 dark:bg-slate-700/50 rounded-md border border-slate-200 dark:border-slate-600 p-4">
+                  <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-3">
+                    متن‌های صفحه اصلی
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        عنوان اصلی سایت (Site Title) *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={siteIdentity.site_title}
+                        onChange={(e) => setSiteIdentity({ ...siteIdentity, site_title: e.target.value })}
+                        placeholder="Network Monitoring & Diagnostics"
+                        className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                      />
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        این متن در صفحه اصلی به صورت بزرگ نمایش داده می‌شود
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        زیرعنوان (Subtitle) *
+                      </label>
+                      <textarea
+                        required
+                        value={siteIdentity.site_subtitle}
+                        onChange={(e) => setSiteIdentity({ ...siteIdentity, site_subtitle: e.target.value })}
+                        placeholder="Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide"
+                        rows={3}
+                        className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 resize-none"
+                      />
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        توضیحات زیر عنوان اصلی
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-slate-700/50 rounded-md border border-slate-200 dark:border-slate-600 p-4">
+                  <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-3">
+                    لوگو و برند
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        متن لوگو (Logo Text) *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={siteIdentity.logo_text}
+                        onChange={(e) => setSiteIdentity({ ...siteIdentity, logo_text: e.target.value })}
+                        placeholder="Check Host"
+                        className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                      />
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        متن کنار لوگو در نوار بالای صفحه
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        حروف اولیه لوگو (Logo Initials) *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        maxLength={5}
+                        value={siteIdentity.logo_initials}
+                        onChange={(e) => setSiteIdentity({ ...siteIdentity, logo_initials: e.target.value.toUpperCase() })}
+                        placeholder="CH"
+                        className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                      />
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        حروف داخل آیکون لوگو (حداکثر 5 کاراکتر) - فقط در صورت عدم وجود تصویر لوگو نمایش داده می‌شود
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <button
+                    type="submit"
+                    disabled={siteIdentityLoading}
+                    className="px-4 py-2 text-sm font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {siteIdentityLoading ? "در حال ذخیره..." : "ذخیره تغییرات"}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
         </div>

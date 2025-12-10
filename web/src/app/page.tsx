@@ -63,6 +63,10 @@ export default function Home() {
   const [isFocused, setIsFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [siteIdentity, setSiteIdentity] = useState({
+    site_title: "Network Monitoring & Diagnostics",
+    site_subtitle: "Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide",
+  });
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -84,6 +88,21 @@ export default function Home() {
       })
       .catch(() => {
         setIsAdmin(false);
+      });
+
+    // Load site identity
+    fetch("/api/site-identity")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.siteIdentity) {
+          setSiteIdentity({
+            site_title: data.siteIdentity.site_title || "Network Monitoring & Diagnostics",
+            site_subtitle: data.siteIdentity.site_subtitle || "Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide",
+          });
+        }
+      })
+      .catch(() => {
+        // Use default values on error
       });
   }, []);
 
@@ -119,10 +138,10 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8 sm:mb-10 md:mb-12 animate-fade-in">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-3 sm:mb-4 px-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Network Monitoring & Diagnostics
+              {siteIdentity.site_title}
             </h1>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto px-4">
-              Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide
+              {siteIdentity.site_subtitle}
             </p>
           </div>
 

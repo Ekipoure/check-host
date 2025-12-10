@@ -40,3 +40,54 @@ export async function getBanners(): Promise<Banner[]> {
   }
 }
 
+interface SiteIdentity {
+  id: number | null;
+  site_title: string;
+  site_subtitle: string;
+  logo_text: string;
+  logo_initials: string;
+  meta_title: string;
+  meta_description: string;
+  logo_url: string | null;
+  favicon_url: string | null;
+}
+
+export async function getSiteIdentity(): Promise<SiteIdentity> {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM site_identity ORDER BY id LIMIT 1"
+    );
+    
+    if (result.rows.length === 0) {
+      // Return default values if no record exists
+      return {
+        id: null,
+        site_title: "Network Monitoring & Diagnostics",
+        site_subtitle: "Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide",
+        logo_text: "Check Host",
+        logo_initials: "CH",
+        meta_title: "Check Host - Network Monitoring & Diagnostics",
+        meta_description: "Online tool for checking availability of websites, servers, hosts and IP addresses",
+        logo_url: null,
+        favicon_url: null,
+      };
+    }
+    
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error fetching site identity:", error);
+    // Return default values on error
+    return {
+      id: null,
+      site_title: "Network Monitoring & Diagnostics",
+      site_subtitle: "Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide",
+      logo_text: "Check Host",
+      logo_initials: "CH",
+      meta_title: "Check Host - Network Monitoring & Diagnostics",
+      meta_description: "Online tool for checking availability of websites, servers, hosts and IP addresses",
+      logo_url: null,
+      favicon_url: null,
+    };
+  }
+}
+
