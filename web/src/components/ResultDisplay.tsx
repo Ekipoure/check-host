@@ -127,14 +127,148 @@ function processPortResults(portResults: any[]): {
   };
 }
 
+// Helper function to check if a string is an IP address
+function isIPAddress(str: string): boolean {
+  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+  const ipv6Regex = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/;
+  return ipv4Regex.test(str) || ipv6Regex.test(str);
+}
+
+// Helper function to format TTL as "Xh Ym Zs"
+function formatTTL(ttlSeconds: number | null): string {
+  if (ttlSeconds === null || ttlSeconds === undefined) {
+    return "—";
+  }
+
+  const hours = Math.floor(ttlSeconds / 3600);
+  const minutes = Math.floor((ttlSeconds % 3600) / 60);
+  const seconds = ttlSeconds % 60;
+
+  const parts: string[] = [];
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+
+  return parts.join(" ");
+}
+
+// Helper function to translate country names to Persian
+function translateCountryToPersian(countryName: string): string {
+  const countryMap: Record<string, string> = {
+    'Netherlands': 'هلند',
+    'Iran': 'ایران',
+    'United States': 'ایالات متحده',
+    'USA': 'ایالات متحده',
+    'United Kingdom': 'انگلستان',
+    'UK': 'انگلستان',
+    'Germany': 'آلمان',
+    'France': 'فرانسه',
+    'Canada': 'کانادا',
+    'Australia': 'استرالیا',
+    'Japan': 'ژاپن',
+    'China': 'چین',
+    'Russia': 'روسیه',
+    'India': 'هند',
+    'Brazil': 'برزیل',
+    'Turkey': 'ترکیه',
+    'Italy': 'ایتالیا',
+    'Spain': 'اسپانیا',
+    'Poland': 'لهستان',
+    'Sweden': 'سوئد',
+    'Norway': 'نروژ',
+    'Finland': 'فنلاند',
+    'Denmark': 'دانمارک',
+    'Switzerland': 'سوئیس',
+    'Austria': 'اتریش',
+    'Belgium': 'بلژیک',
+    'Greece': 'یونان',
+    'Portugal': 'پرتغال',
+    'Czech Republic': 'جمهوری چک',
+    'Czechia': 'جمهوری چک',
+    'Hungary': 'مجارستان',
+    'Romania': 'رومانی',
+    'Bulgaria': 'بلغارستان',
+    'Ukraine': 'اوکراین',
+    'Poland': 'لهستان',
+    'Singapore': 'سنگاپور',
+    'South Korea': 'کره جنوبی',
+    'Thailand': 'تایلند',
+    'Malaysia': 'مالزی',
+    'Indonesia': 'اندونزی',
+    'Philippines': 'فیلیپین',
+    'Vietnam': 'ویتنام',
+    'Saudi Arabia': 'عربستان سعودی',
+    'United Arab Emirates': 'امارات متحده عربی',
+    'UAE': 'امارات متحده عربی',
+    'Israel': 'اسرائیل',
+    'Egypt': 'مصر',
+    'South Africa': 'آفریقای جنوبی',
+    'Mexico': 'مکزیک',
+    'Argentina': 'آرژانتین',
+    'Chile': 'شیلی',
+    'Colombia': 'کلمبیا',
+    'Peru': 'پرو',
+    'Venezuela': 'ونزوئلا',
+    'Pakistan': 'پاکستان',
+    'Bangladesh': 'بنگلادش',
+    'Afghanistan': 'افغانستان',
+    'Iraq': 'عراق',
+    'Jordan': 'اردن',
+    'Lebanon': 'لبنان',
+    'Syria': 'سوریه',
+    'Kuwait': 'کویت',
+    'Qatar': 'قطر',
+    'Oman': 'عمان',
+    'Bahrain': 'بحرین',
+    'Yemen': 'یمن',
+    'New Zealand': 'نیوزیلند',
+    'Ireland': 'ایرلند',
+    'Iceland': 'ایسلند',
+    'Luxembourg': 'لوکزامبورگ',
+    'Slovakia': 'اسلواکی',
+    'Slovenia': 'اسلوونی',
+    'Croatia': 'کرواسی',
+    'Serbia': 'صربستان',
+    'Bosnia and Herzegovina': 'بوسنی و هرزگوین',
+    'Albania': 'آلبانی',
+    'Macedonia': 'مقدونیه',
+    'Montenegro': 'مونته‌نگرو',
+    'Kosovo': 'کوزوو',
+    'Moldova': 'مولداوی',
+    'Belarus': 'بلاروس',
+    'Lithuania': 'لیتوانی',
+    'Latvia': 'لتونی',
+    'Estonia': 'استونی',
+    'Georgia': 'گرجستان',
+    'Armenia': 'ارمنستان',
+    'Azerbaijan': 'آذربایجان',
+    'Kazakhstan': 'قزاقستان',
+    'Uzbekistan': 'ازبکستان',
+    'Turkmenistan': 'ترکمنستان',
+    'Kyrgyzstan': 'قرقیزستان',
+    'Tajikistan': 'تاجیکستان',
+    'Mongolia': 'مغولستان',
+    'Nepal': 'نپال',
+    'Sri Lanka': 'سری‌لانکا',
+    'Myanmar': 'میانمار',
+    'Cambodia': 'کامبوج',
+    'Laos': 'لائوس',
+    'Brunei': 'برونئی',
+    'Taiwan': 'تایوان',
+    'Hong Kong': 'هنگ کنگ',
+    'Macau': 'ماکائو',
+  };
+
+  return countryMap[countryName] || countryName;
+}
+
 // Helper function to process DNS results
 function processDNSResults(dnsResults: any[]): {
-  aRecords: string[];
-  aaaaRecords: string[];
+  result: string;
   ttl: number | null;
 } {
   if (!dnsResults || !Array.isArray(dnsResults) || dnsResults.length === 0) {
-    return { aRecords: [], aaaaRecords: [], ttl: null };
+    return { result: "یافت نشد", ttl: null };
   }
 
   const allRecords = dnsResults.flat();
@@ -154,7 +288,27 @@ function processDNSResults(dnsResults: any[]): {
     }
   });
 
-  return { aRecords: [...new Set(aRecords)], aaaaRecords: [...new Set(aaaaRecords)], ttl };
+  const uniqueARecords = [...new Set(aRecords)];
+  const uniqueAAAARecords = [...new Set(aaaaRecords)];
+
+  // Determine if this is reverse DNS (hostname) or forward DNS (IP addresses)
+  // If A records contain hostnames (not IPs), it's reverse DNS
+  // If A records contain IPs or AAAA contains IPs, it's forward DNS
+  const hasARecords = uniqueARecords.length > 0;
+  const hasAAAARecords = uniqueAAAARecords.length > 0;
+  const isReverseDNS = hasARecords && !isIPAddress(uniqueARecords[0]);
+
+  let result: string;
+  if (isReverseDNS) {
+    // Reverse DNS: show hostname(s) from A field
+    result = uniqueARecords.join(", ");
+  } else {
+    // Forward DNS: show IP addresses (A and AAAA)
+    const allIPs = [...uniqueARecords, ...uniqueAAAARecords];
+    result = allIPs.length > 0 ? allIPs.join(", ") : "یافت نشد";
+  }
+
+  return { result, ttl };
 }
 
 const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
@@ -273,7 +427,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
                         {info.country && (
                           <div>
                             <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">کشور</div>
-                            <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.country} {info.countryCode ? `(${info.countryCode})` : ''}</div>
+                            <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{translateCountryToPersian(info.country)} {info.countryCode ? `(${info.countryCode})` : ''}</div>
                           </div>
                         )}
                         {info.city && (
@@ -296,7 +450,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
                         )}
                         {info.organization && (
                           <div>
-                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Organization</div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">سازمان</div>
                             <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.organization}</div>
                           </div>
                         )}
@@ -381,7 +535,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         const agent = item.agent || {};
         
         const locationParts = [];
-        if (agent.agentCountry) locationParts.push(agent.agentCountry);
+        if (agent.agentCountry) locationParts.push(translateCountryToPersian(agent.agentCountry));
         if (agent.agentCity) locationParts.push(agent.agentCity);
         const location = locationParts.length > 0 
           ? locationParts.join(", ") 
@@ -435,7 +589,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
           countryEmoji: agent.countryEmoji,
           result: `${pingData.successCount} / ${pingData.totalCount}`,
           rtt: pingData.successCount > 0 
-            ? `${pingData.minTime.toFixed(1)} / ${pingData.avgTime.toFixed(1)} / ${pingData.maxTime.toFixed(1)} ms`
+            ? `${pingData.minTime.toFixed(1)} / ${pingData.avgTime.toFixed(1)} / ${pingData.maxTime.toFixed(1)} میلی‌ثانیه`
             : "—",
           ip: displayIP || "—",
         };
@@ -454,7 +608,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         const agent = item.agent || {};
         
         const locationParts = [];
-        if (agent.agentCountry) locationParts.push(agent.agentCountry);
+        if (agent.agentCountry) locationParts.push(translateCountryToPersian(agent.agentCountry));
         if (agent.agentCity) locationParts.push(agent.agentCity);
         const location = locationParts.length > 0 
           ? locationParts.join(", ") 
@@ -471,7 +625,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
           countryCode,
           countryEmoji: agent.countryEmoji,
           result: httpData.success ? "✓ موفق" : "✗ خطا",
-          time: httpData.time > 0 ? `${(httpData.time * 1000).toFixed(0)} ms` : "—",
+          time: httpData.time > 0 ? `${(httpData.time * 1000).toFixed(0)} میلی‌ثانیه` : "—",
           statusCode: httpData.statusCode || "—",
           ip: httpData.ip || "—",
         };
@@ -485,7 +639,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         const agent = item.agent || {};
         
         const locationParts = [];
-        if (agent.agentCountry) locationParts.push(agent.agentCountry);
+        if (agent.agentCountry) locationParts.push(translateCountryToPersian(agent.agentCountry));
         if (agent.agentCity) locationParts.push(agent.agentCity);
         const location = locationParts.length > 0 
           ? locationParts.join(", ") 
@@ -502,12 +656,12 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
           countryCode,
           countryEmoji: agent.countryEmoji,
           result: portData.success ? "✓ موفق" : (portData.error || "✗ خطا"),
-          time: portData.time ? `${(portData.time * 1000).toFixed(0)} ms` : "—",
+          time: portData.time ? `${(portData.time * 1000).toFixed(0)} میلی‌ثانیه` : "—",
           ip: portData.address || "—",
         };
       });
   } else if (checkType === 'dns') {
-    tableHeaders = ['موقعیت', 'رکوردهای A', 'رکوردهای AAAA', 'TTL'];
+    tableHeaders = ['موقعیت', 'نتیجه', 'زمان حیات'];
     tableData = results
       .filter((item: any) => item.agent && item.result)
       .map((item: any) => {
@@ -515,7 +669,9 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         const agent = item.agent || {};
         
         const locationParts = [];
-        if (agent.agentCountry) locationParts.push(agent.agentCountry);
+        if (agent.agentCountry) {
+          locationParts.push(translateCountryToPersian(agent.agentCountry));
+        }
         if (agent.agentCity) locationParts.push(agent.agentCity);
         const location = locationParts.length > 0 
           ? locationParts.join(", ") 
@@ -531,9 +687,8 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
           location,
           countryCode,
           countryEmoji: agent.countryEmoji,
-          aRecords: dnsData.aRecords.length > 0 ? dnsData.aRecords.join(", ") : "—",
-          aaaaRecords: dnsData.aaaaRecords.length > 0 ? dnsData.aaaaRecords.join(", ") : "—",
-          ttl: dnsData.ttl ? `${dnsData.ttl} s` : "—",
+          result: dnsData.result,
+          ttl: formatTTL(dnsData.ttl),
         };
       });
   }
@@ -614,7 +769,11 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
                   {checkType === 'http' && (
                     <>
                       <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
-                        <span className={`text-xs sm:text-sm font-medium ${row.result.includes('OK') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <span className={`text-xs sm:text-sm font-medium ${
+                          row.result.includes('موفق') || row.result.includes('✓')
+                            ? 'text-green-600 dark:text-green-400' 
+                            : 'text-red-600 dark:text-red-400'
+                        }`}>
                           {row.result}
                         </span>
                       </td>
@@ -638,7 +797,11 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
                   {(checkType === 'tcp' || checkType === 'udp') && (
                     <>
                       <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
-                        <span className={`text-xs sm:text-sm font-medium ${row.result.includes('OK') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <span className={`text-xs sm:text-sm font-medium ${
+                          row.result.includes('موفق') || row.result.includes('✓')
+                            ? 'text-green-600 dark:text-green-400' 
+                            : 'text-red-600 dark:text-red-400'
+                        }`}>
                           {row.result}
                         </span>
                       </td>
@@ -657,17 +820,16 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
                   {checkType === 'dns' && (
                     <>
                       <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
-                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono break-all">
-                          {row.aRecords}
-                        </span>
-                      </td>
-                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
-                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono break-all">
-                          {row.aaaaRecords}
+                        <span className={`text-xs sm:text-sm font-mono break-all ${
+                          row.result === "یافت نشد" 
+                            ? "text-red-600 dark:text-red-400" 
+                            : "text-green-600 dark:text-green-400"
+                        }`}>
+                          {row.result}
                         </span>
                       </td>
                       <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
-                        <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono">
+                        <span className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-mono">
                           {row.ttl}
                         </span>
                       </td>
