@@ -17,13 +17,13 @@ export default function PingPage() {
       const response = await fetch(`/api/ping?host=${encodeURIComponent(host)}&count=${count}`);
       const data = await response.json();
       if (!response.ok) {
-        setResult({ error: data.error || "Failed to ping host" });
+        setResult({ error: data.error || "ping میزبان با خطا مواجه شد" });
       } else {
         setResult(data);
       }
     } catch (error) {
       console.error("Error pinging host:", error);
-      setResult({ error: "Failed to ping host" });
+      setResult({ error: "ping میزبان با خطا مواجه شد" });
     } finally {
       setLoading(false);
     }
@@ -32,7 +32,7 @@ export default function PingPage() {
   const options = (
     <div>
       <label htmlFor="count" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
-        Number of packets
+        تعداد بسته‌ها
       </label>
       <input
         id="count"
@@ -49,9 +49,9 @@ export default function PingPage() {
   return (
     <div className="min-h-screen py-6 sm:py-8 md:py-12 px-2 sm:px-4 md:px-6 lg:px-8">
       <CheckForm
-        title="Ping Test"
-        description="Test the reachability of a host, measure network latency and packet loss from different servers worldwide"
-        placeholder="Enter hostname or IP address (e.g., google.com or 8.8.8.8)"
+        title="تست Ping"
+        description="تست دسترسی به میزبان، اندازه‌گیری تاخیر شبکه و از دست رفتن بسته از سرورهای مختلف در سراسر جهان"
+        placeholder="نام میزبان یا آدرس IP را وارد کنید (مثال: google.com یا 8.8.8.8)"
         icon="📡"
         onSubmit={handleCheck}
         options={options}

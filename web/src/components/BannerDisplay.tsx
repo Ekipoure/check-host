@@ -174,10 +174,23 @@ export default function BannerDisplay({ initialBanners = [] }: BannerDisplayProp
                 transform: translateX(100%);
               }
             }
+            @keyframes ${animationName}-rtl {
+              0% {
+                transform: translateX(100%);
+              }
+              100% {
+                transform: translateX(-100%);
+              }
+            }
             .${className} {
               display: inline-block;
               animation: ${animationName} ${banner.animation_duration}s linear infinite;
               padding-right: 100%;
+            }
+            [dir="rtl"] .${className} {
+              animation-name: ${animationName}-rtl;
+              padding-right: 0;
+              padding-left: 100%;
             }
           `
         }} />

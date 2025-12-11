@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
           site_title: defaultSiteTitle,
           site_subtitle: defaultSiteSubtitle,
           logo_text: defaultLogoText,
-          logo_initials: "CH",
+          logo_slogan: "",
           meta_title: `${defaultLogoText} - ${defaultSiteTitle}`,
           meta_description: defaultSiteSubtitle,
         },
@@ -99,7 +99,7 @@ export async function PUT(request: NextRequest) {
       site_title,
       site_subtitle,
       logo_text,
-      logo_initials,
+      logo_slogan,
       meta_title,
       meta_description,
       logo_url,
@@ -124,14 +124,14 @@ export async function PUT(request: NextRequest) {
       // Insert new record
       result = await pool.query(
         `INSERT INTO site_identity (
-          site_title, site_subtitle, logo_text, logo_initials, meta_title, meta_description, logo_url, favicon_url
+          site_title, site_subtitle, logo_text, logo_slogan, meta_title, meta_description, logo_url, favicon_url
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *`,
         [
           finalSiteTitle,
           finalSiteSubtitle,
           finalLogoText,
-          logo_initials || "CH",
+          logo_slogan || "",
           finalMetaTitle,
           finalMetaDescription,
           logo_url || null,
@@ -145,7 +145,7 @@ export async function PUT(request: NextRequest) {
           site_title = COALESCE($1, site_title),
           site_subtitle = COALESCE($2, site_subtitle),
           logo_text = COALESCE($3, logo_text),
-          logo_initials = COALESCE($4, logo_initials),
+          logo_slogan = COALESCE($4, logo_slogan),
           meta_title = $5,
           meta_description = $6,
           logo_url = COALESCE($7, logo_url),
@@ -157,7 +157,7 @@ export async function PUT(request: NextRequest) {
           site_title,
           site_subtitle,
           logo_text,
-          logo_initials,
+          logo_slogan,
           finalMetaTitle,
           finalMetaDescription,
           logo_url,

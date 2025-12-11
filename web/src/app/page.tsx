@@ -6,52 +6,52 @@ import { useRouter } from "next/navigation";
 
 const services = [
   {
-    title: "IP Info",
-    description: "Get geolocation data of IP address or hostname: country, region, city, timezone, ISP, and organization",
+    title: "اطلاعات IP",
+    description: "دریافت اطلاعات جغرافیایی آدرس IP یا نام میزبان: کشور، منطقه، شهر، منطقه زمانی، ISP و سازمان",
     href: "/ip-info",
     icon: "🌐",
     gradient: "from-blue-500 to-cyan-500",
-    features: ["Geolocation", "ISP Info", "Timezone", "ASN"],
+    features: ["موقعیت جغرافیایی", "اطلاعات ISP", "منطقه زمانی", "ASN"],
   },
   {
     title: "Ping",
-    description: "Test the reachability of a host, measure network latency and packet loss from different servers worldwide",
+    description: "تست دسترسی به میزبان، اندازه‌گیری تاخیر شبکه و از دست رفتن بسته از سرورهای مختلف در سراسر جهان",
     href: "/ping",
     icon: "📡",
     gradient: "from-purple-500 to-pink-500",
-    features: ["Latency", "Packet Loss", "Global Servers", "Real-time"],
+    features: ["تاخیر", "از دست رفتن بسته", "سرورهای جهانی", "زمان واقعی"],
   },
   {
     title: "HTTP",
-    description: "Check website's response performance and availability from many countries and datacenters",
+    description: "بررسی عملکرد و در دسترس بودن پاسخ وب‌سایت از کشورها و مراکز داده مختلف",
     href: "/http",
     icon: "🌍",
     gradient: "from-green-500 to-emerald-500",
-    features: ["Response Time", "Status Code", "Global Check", "Headers"],
+    features: ["زمان پاسخ", "کد وضعیت", "بررسی جهانی", "هدرها"],
   },
   {
     title: "DNS",
-    description: "Retrieve A, AAAA, and PTR records with TTL from nameservers around the world",
+    description: "دریافت رکوردهای A، AAAA و PTR همراه با TTL از سرورهای نام در سراسر جهان",
     href: "/dns",
     icon: "🔍",
     gradient: "from-orange-500 to-red-500",
-    features: ["A Records", "AAAA Records", "PTR Records", "TTL Info"],
+    features: ["رکوردهای A", "رکوردهای AAAA", "رکوردهای PTR", "اطلاعات TTL"],
   },
   {
-    title: "TCP Port",
-    description: "Check the possibility of a TCP connection to host's specified port",
+    title: "پورت TCP",
+    description: "بررسی امکان اتصال TCP به پورت مشخص شده میزبان",
     href: "/tcp",
     icon: "🔌",
     gradient: "from-indigo-500 to-purple-500",
-    features: ["Port Status", "Connection Test", "Multiple Ports", "Timeout"],
+    features: ["وضعیت پورت", "تست اتصال", "چند پورت", "تایم‌اوت"],
   },
   {
-    title: "UDP Port",
-    description: "Check the possibility of communication over UDP protocol using host's specified port",
+    title: "پورت UDP",
+    description: "بررسی امکان ارتباط از طریق پروتکل UDP با استفاده از پورت مشخص شده میزبان",
     href: "/udp",
     icon: "📡",
     gradient: "from-teal-500 to-cyan-500",
-    features: ["UDP Test", "Port Check", "Response Time", "Reliability"],
+    features: ["تست UDP", "بررسی پورت", "زمان پاسخ", "قابلیت اطمینان"],
   },
 ];
 
@@ -64,8 +64,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [siteIdentity, setSiteIdentity] = useState({
-    site_title: "Network Monitoring & Diagnostics",
-    site_subtitle: "Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide",
+    site_title: "نظارت و تشخیص شبکه",
+    site_subtitle: "بررسی در دسترس بودن وب‌سایت‌ها، سرورها، میزبان‌ها و آدرس‌های IP از مکان‌های مختلف در سراسر جهان",
   });
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -96,8 +96,8 @@ export default function Home() {
       .then((data) => {
         if (data.success && data.siteIdentity) {
           setSiteIdentity({
-            site_title: data.siteIdentity.site_title || "Network Monitoring & Diagnostics",
-            site_subtitle: data.siteIdentity.site_subtitle || "Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide",
+            site_title: data.siteIdentity.site_title || "نظارت و تشخیص شبکه",
+            site_subtitle: data.siteIdentity.site_subtitle || "بررسی در دسترس بودن وب‌سایت‌ها، سرورها، میزبان‌ها و آدرس‌های IP از مکان‌های مختلف در سراسر جهان",
           });
         }
       })
@@ -176,7 +176,7 @@ export default function Home() {
                       onChange={(e) => setSearchValue(e.target.value)}
                       onFocus={() => setIsFocused(true)}
                       onBlur={() => setIsFocused(false)}
-                      placeholder="Enter IP address, hostname, or domain"
+                      placeholder="آدرس IP، نام میزبان یا دامنه را وارد کنید"
                       className="flex-1 bg-transparent border-none outline-none text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm sm:text-base md:text-lg py-2 sm:py-3 md:py-4 pr-2 min-w-0"
                       disabled={isLoading}
                     />
@@ -194,12 +194,12 @@ export default function Home() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span className="hidden xs:inline">Checking...</span>
+                        <span className="hidden xs:inline">در حال بررسی...</span>
                         <span className="xs:hidden">...</span>
                       </span>
                     ) : (
                       <span className="flex items-center justify-center gap-2">
-                        <span>Check</span>
+                        <span>بررسی</span>
                         <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                         </svg>
@@ -244,22 +244,6 @@ export default function Home() {
               </div>
             </form>
           </div>
-
-          {/* Admin Dashboard Link */}
-          {isAdmin && (
-            <div className="text-center mt-6 sm:mt-8 animate-fade-in" style={{ animationDelay: "0.4s" }}>
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm text-slate-700 dark:text-slate-300 rounded-lg sm:rounded-xl font-medium shadow-lg hover:shadow-xl border border-slate-200/50 dark:border-slate-700/50 transform hover:scale-105 transition-all duration-200 text-sm sm:text-base"
-              >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                <span className="hidden sm:inline">Agent Dashboard</span>
-                <span className="sm:hidden">Dashboard</span>
-              </Link>
-            </div>
-          )}
         </div>
       </section>
 
@@ -315,34 +299,34 @@ export default function Home() {
       <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 bg-white/50 dark:bg-slate-800/50">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-10 md:mb-12 text-slate-800 dark:text-slate-200 px-4">
-            Why Choose Check Host?
+            چرا Check Host را انتخاب کنیم؟
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
             <div className="text-center p-4 sm:p-5 md:p-6">
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <span className="text-2xl sm:text-3xl">⚡</span>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">Fast & Reliable</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">سریع و قابل اعتماد</h3>
               <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
-                Get instant results from our global network of monitoring servers
+                دریافت نتایج فوری از شبکه جهانی سرورهای نظارتی ما
               </p>
             </div>
             <div className="text-center p-4 sm:p-5 md:p-6">
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <span className="text-2xl sm:text-3xl">🌍</span>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">Global Coverage</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">پوشش جهانی</h3>
               <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
-                Test from multiple locations worldwide for accurate results
+                تست از مکان‌های مختلف در سراسر جهان برای نتایج دقیق
               </p>
             </div>
             <div className="text-center p-4 sm:p-5 md:p-6 sm:col-span-2 md:col-span-1">
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <span className="text-2xl sm:text-3xl">🔒</span>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">Secure & Private</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">امن و خصوصی</h3>
               <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
-                Your data is safe with us. We don't store sensitive information
+                اطلاعات شما در امان است. ما اطلاعات حساس را ذخیره نمی‌کنیم
               </p>
             </div>
           </div>

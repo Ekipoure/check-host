@@ -17,13 +17,13 @@ export default function UDPPage() {
       const response = await fetch(`/api/udp?host=${encodeURIComponent(host)}&port=${port}`);
       const data = await response.json();
       if (!response.ok) {
-        setResult({ error: data.error || "Failed to check UDP port" });
+        setResult({ error: data.error || "بررسی پورت UDP با خطا مواجه شد" });
       } else {
         setResult(data);
       }
     } catch (error) {
       console.error("Error checking UDP port:", error);
-      setResult({ error: "Failed to check UDP port" });
+      setResult({ error: "بررسی پورت UDP با خطا مواجه شد" });
     } finally {
       setLoading(false);
     }
@@ -32,7 +32,7 @@ export default function UDPPage() {
   const options = (
     <div>
       <label htmlFor="port" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
-        Port Number
+        شماره پورت
       </label>
       <input
         id="port"
@@ -50,9 +50,9 @@ export default function UDPPage() {
   return (
     <div className="min-h-screen py-6 sm:py-8 md:py-12 px-2 sm:px-4 md:px-6 lg:px-8">
       <CheckForm
-        title="UDP Port Check"
-        description="Check the possibility of communication over UDP protocol using host's specified port"
-        placeholder="Enter hostname or IP address (e.g., 8.8.8.8 or google.com)"
+        title="بررسی پورت UDP"
+        description="بررسی امکان ارتباط از طریق پروتکل UDP با استفاده از پورت مشخص شده میزبان"
+        placeholder="نام میزبان یا آدرس IP را وارد کنید (مثال: 8.8.8.8 یا google.com)"
         icon="📡"
         onSubmit={handleCheck}
         options={options}

@@ -290,7 +290,7 @@ export async function initializeDatabase() {
         site_title TEXT DEFAULT 'Network Monitoring & Diagnostics',
         site_subtitle TEXT DEFAULT 'Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide',
         logo_text TEXT DEFAULT 'Check Host',
-        logo_initials TEXT DEFAULT 'CH',
+        logo_slogan TEXT DEFAULT '',
         meta_title TEXT DEFAULT 'Check Host - Network Monitoring & Diagnostics',
         meta_description TEXT DEFAULT 'Online tool for checking availability of websites, servers, hosts and IP addresses',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -303,7 +303,7 @@ export async function initializeDatabase() {
       { name: 'site_title', defaultValue: 'Network Monitoring & Diagnostics' },
       { name: 'site_subtitle', defaultValue: 'Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide' },
       { name: 'logo_text', defaultValue: 'Check Host' },
-      { name: 'logo_initials', defaultValue: 'CH' },
+      { name: 'logo_slogan', defaultValue: '' },
       { name: 'meta_title', defaultValue: 'Check Host - Network Monitoring & Diagnostics' },
       { name: 'meta_description', defaultValue: 'Online tool for checking availability of websites, servers, hosts and IP addresses' },
       { name: 'logo_url', defaultValue: null },
@@ -319,10 +319,26 @@ export async function initializeDatabase() {
         `, [column.name]);
         
         if (columnCheck.rows.length === 0) {
-          await client.query(`
-            ALTER TABLE site_identity 
-            ADD COLUMN ${column.name} TEXT ${column.defaultValue !== null ? `DEFAULT $1` : ''}
-          `, column.defaultValue !== null ? [column.defaultValue] : []);
+          if (column.defaultValue !== null) {
+            // For empty strings, use DEFAULT '' directly
+            if (column.defaultValue === '') {
+              await client.query(`
+                ALTER TABLE site_identity 
+                ADD COLUMN ${column.name} TEXT DEFAULT ''
+              `);
+            } else {
+              // For other values, use parameterized query
+              await client.query(`
+                ALTER TABLE site_identity 
+                ADD COLUMN ${column.name} TEXT DEFAULT $1
+              `, [column.defaultValue]);
+            }
+          } else {
+            await client.query(`
+              ALTER TABLE site_identity 
+              ADD COLUMN ${column.name} TEXT
+            `);
+          }
           console.log(`✅ Added ${column.name} column to site_identity table`);
         }
       } catch (error: any) {
@@ -335,13 +351,13 @@ export async function initializeDatabase() {
     if (parseInt(siteIdentityCheck.rows[0].count) === 0) {
       await client.query(`
         INSERT INTO site_identity (
-          site_title, site_subtitle, logo_text, logo_initials, meta_title, meta_description, logo_url, favicon_url
+          site_title, site_subtitle, logo_text, logo_slogan, meta_title, meta_description, logo_url, favicon_url
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       `, [
         'Network Monitoring & Diagnostics',
         'Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide',
         'Check Host',
-        'CH',
+        '',
         'Check Host - Network Monitoring & Diagnostics',
         'Online tool for checking availability of websites, servers, hosts and IP addresses',
         '/uploads/site-identity/favicon-1765353943561-u51tipycn.png',

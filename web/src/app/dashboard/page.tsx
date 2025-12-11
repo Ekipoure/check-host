@@ -37,12 +37,12 @@ function EditAdminForm({ admin, currentAdminId, onSave, onCancel }: EditAdminFor
     e.preventDefault();
     
     if (editPassword && editPassword !== editConfirmPassword) {
-      alert("Passwords do not match");
+      alert("رمزهای عبور مطابقت ندارند");
       return;
     }
 
     if (editPassword && editPassword.length < 6) {
-      alert("Password must be at least 6 characters");
+      alert("رمز عبور باید حداقل 6 کاراکتر باشد");
       return;
     }
 
@@ -56,7 +56,7 @@ function EditAdminForm({ admin, currentAdminId, onSave, onCancel }: EditAdminFor
     <form onSubmit={handleSubmit} className="space-y-3">
       <div>
         <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-          Username
+          نام کاربری
         </label>
         <input
           type="text"
@@ -69,19 +69,19 @@ function EditAdminForm({ admin, currentAdminId, onSave, onCancel }: EditAdminFor
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-            New Password
+            رمز عبور جدید
           </label>
           <input
             type="password"
             value={editPassword}
             onChange={(e) => setEditPassword(e.target.value)}
             className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-            placeholder="Leave empty to keep"
+            placeholder="خالی بگذارید تا تغییر نکند"
           />
         </div>
         <div>
           <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-            Confirm Password
+            تأیید رمز عبور
           </label>
           <input
             type="password"
@@ -97,13 +97,13 @@ function EditAdminForm({ admin, currentAdminId, onSave, onCancel }: EditAdminFor
           onClick={onCancel}
           className="px-3 py-1.5 text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
         >
-          Cancel
+          لغو
         </button>
         <button
           type="submit"
           className="px-3 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
         >
-          Save
+          ذخیره
         </button>
       </div>
     </form>
@@ -204,7 +204,7 @@ export default function DashboardPage() {
     site_title: "",
     site_subtitle: "",
     logo_text: "",
-    logo_initials: "",
+    logo_slogan: "",
     logo_url: null as string | null,
     favicon_url: null as string | null,
   });
@@ -320,7 +320,7 @@ export default function DashboardPage() {
           site_title: data.siteIdentity.site_title || "",
           site_subtitle: data.siteIdentity.site_subtitle || "",
           logo_text: data.siteIdentity.logo_text || "",
-          logo_initials: data.siteIdentity.logo_initials || "",
+          logo_slogan: data.siteIdentity.logo_slogan || "",
           logo_url: data.siteIdentity.logo_url || null,
           favicon_url: data.siteIdentity.favicon_url || null,
         });
@@ -354,7 +354,7 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificationMessage("Site identity updated successfully");
+        setNotificationMessage("هویت سایت با موفقیت به‌روزرسانی شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
@@ -362,14 +362,14 @@ export default function DashboardPage() {
         // Reload page to update favicon
         window.location.reload();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to update site identity"}`);
+        setNotificationMessage(`خطا: ${data.error || "به‌روزرسانی هویت سایت ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error updating site identity:", error);
-      setNotificationMessage("Failed to update site identity");
+      setNotificationMessage("به‌روزرسانی هویت سایت ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -420,10 +420,10 @@ export default function DashboardPage() {
             setDeployingAgentId(null);
             
             if (agent.status === "online") {
-              setNotificationMessage(`Agent "${agent.name}" deployed successfully`);
+              setNotificationMessage(`نماینده "${agent.name}" با موفقیت استقرار یافت`);
               setNotificationType("success");
             } else {
-              setNotificationMessage(`Agent "${agent.name}" deployment failed`);
+              setNotificationMessage(`استقرار نماینده "${agent.name}" ناموفق بود`);
               setNotificationType("error");
             }
             setShowNotification(true);
@@ -505,14 +505,14 @@ export default function DashboardPage() {
         });
         loadAgents();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to deploy agent"}`);
+        setNotificationMessage(`خطا: ${data.error || "استقرار نماینده ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error deploying agent:", error);
-      setNotificationMessage("Failed to deploy agent");
+      setNotificationMessage("استقرار نماینده ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -522,7 +522,7 @@ export default function DashboardPage() {
   };
 
   const handleUninstall = async (agentId: string) => {
-    if (!confirm(`Uninstall agent ${agentId}?`)) {
+    if (!confirm(`نماینده ${agentId} حذف شود؟`)) {
       return;
     }
 
@@ -534,20 +534,20 @@ export default function DashboardPage() {
       const data = await response.json();
       
       if (data.success) {
-        setNotificationMessage("Agent uninstalled");
+        setNotificationMessage("نماینده حذف شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
         loadAgents();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to uninstall"}`);
+        setNotificationMessage(`خطا: ${data.error || "حذف ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error uninstalling agent:", error);
-      setNotificationMessage("Failed to uninstall");
+      setNotificationMessage("حذف ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -563,20 +563,20 @@ export default function DashboardPage() {
       const data = await response.json();
       
       if (data.success) {
-        setNotificationMessage("Agent hidden");
+        setNotificationMessage("نماینده مخفی شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
         loadAgents();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to hide"}`);
+        setNotificationMessage(`خطا: ${data.error || "مخفی کردن ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error disabling agent:", error);
-      setNotificationMessage("Failed to disable");
+      setNotificationMessage("مخفی کردن ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -592,20 +592,20 @@ export default function DashboardPage() {
       const data = await response.json();
       
       if (data.success) {
-        setNotificationMessage("Agent shown");
+        setNotificationMessage("نماینده نمایش داده شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
         loadAgents();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to show"}`);
+        setNotificationMessage(`خطا: ${data.error || "نمایش ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error enabling agent:", error);
-      setNotificationMessage("Failed to enable");
+      setNotificationMessage("نمایش ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -616,7 +616,7 @@ export default function DashboardPage() {
     e.preventDefault();
     
     if (adminFormData.password !== adminFormData.confirmPassword) {
-      setNotificationMessage("Passwords do not match");
+      setNotificationMessage("رمزهای عبور مطابقت ندارند");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -624,7 +624,7 @@ export default function DashboardPage() {
     }
 
     if (adminFormData.password.length < 6) {
-      setNotificationMessage("Password must be at least 6 characters");
+      setNotificationMessage("رمز عبور باید حداقل 6 کاراکتر باشد");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -646,7 +646,7 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificationMessage("Admin added");
+        setNotificationMessage("مدیر افزوده شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
@@ -654,14 +654,14 @@ export default function DashboardPage() {
         setAdminFormData({ username: "", password: "", confirmPassword: "" });
         loadAdmins();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to add admin"}`);
+        setNotificationMessage(`خطا: ${data.error || "افزودن مدیر ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error adding admin:", error);
-      setNotificationMessage("Failed to add admin");
+      setNotificationMessage("افزودن مدیر ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -685,7 +685,7 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificationMessage("Admin updated");
+        setNotificationMessage("مدیر به‌روزرسانی شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
@@ -701,14 +701,14 @@ export default function DashboardPage() {
             });
         }
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to update"}`);
+        setNotificationMessage(`خطا: ${data.error || "به‌روزرسانی ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error updating admin:", error);
-      setNotificationMessage("Failed to update");
+      setNotificationMessage("به‌روزرسانی ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -716,7 +716,7 @@ export default function DashboardPage() {
   };
 
   const handleDeleteAdmin = async (adminId: number) => {
-    if (!confirm("Delete this admin?")) {
+    if (!confirm("این مدیر حذف شود؟")) {
       return;
     }
 
@@ -728,20 +728,20 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificationMessage("Admin deleted");
+        setNotificationMessage("مدیر حذف شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
         loadAdmins();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to delete"}`);
+        setNotificationMessage(`خطا: ${data.error || "حذف ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error deleting admin:", error);
-      setNotificationMessage("Failed to delete");
+      setNotificationMessage("حذف ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -752,7 +752,7 @@ export default function DashboardPage() {
     e.preventDefault();
 
     if (!bannerFormData.text.trim()) {
-      setNotificationMessage("Text is required");
+      setNotificationMessage("متن الزامی است");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -771,7 +771,7 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificationMessage("Banner added");
+        setNotificationMessage("بنر افزوده شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
@@ -790,14 +790,14 @@ export default function DashboardPage() {
         });
         loadBanners();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to add banner"}`);
+        setNotificationMessage(`خطا: ${data.error || "افزودن بنر ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error adding banner:", error);
-      setNotificationMessage("Failed to add banner");
+      setNotificationMessage("افزودن بنر ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -806,7 +806,7 @@ export default function DashboardPage() {
 
   const handleUpdateBanner = async (bannerId: number) => {
     if (!bannerFormData.text.trim()) {
-      setNotificationMessage("Text is required");
+      setNotificationMessage("متن الزامی است");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -825,7 +825,7 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificationMessage("Banner updated");
+        setNotificationMessage("بنر به‌روزرسانی شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
@@ -844,14 +844,14 @@ export default function DashboardPage() {
         });
         loadBanners();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to update"}`);
+        setNotificationMessage(`خطا: ${data.error || "به‌روزرسانی ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error updating banner:", error);
-      setNotificationMessage("Failed to update");
+      setNotificationMessage("به‌روزرسانی ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -859,7 +859,7 @@ export default function DashboardPage() {
   };
 
   const handleDeleteBanner = async (bannerId: number) => {
-    if (!confirm("Delete this banner?")) {
+    if (!confirm("این بنر حذف شود؟")) {
       return;
     }
 
@@ -871,20 +871,20 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificationMessage("Banner deleted");
+        setNotificationMessage("بنر حذف شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
         loadBanners();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to delete"}`);
+        setNotificationMessage(`خطا: ${data.error || "حذف ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error deleting banner:", error);
-      setNotificationMessage("Failed to delete");
+      setNotificationMessage("حذف ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -904,20 +904,20 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificationMessage(`Banner ${!isActive ? "enabled" : "disabled"}`);
+        setNotificationMessage(`بنر ${!isActive ? "فعال شد" : "غیرفعال شد"}`);
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
         loadBanners();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to update"}`);
+        setNotificationMessage(`خطا: ${data.error || "به‌روزرسانی ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error toggling banner:", error);
-      setNotificationMessage("Failed to update");
+      setNotificationMessage("به‌روزرسانی ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -928,7 +928,7 @@ export default function DashboardPage() {
     e.preventDefault();
 
     if (advertisementUploadMethod === "upload" && !advertisementFile && !advertisementFormData.fileUrl) {
-      setNotificationMessage("Please upload a file or provide a file URL");
+      setNotificationMessage("لطفاً یک فایل آپلود کنید یا URL فایل را ارائه دهید");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -936,7 +936,7 @@ export default function DashboardPage() {
     }
 
     if (advertisementUploadMethod === "url" && !advertisementFormData.fileUrl) {
-      setNotificationMessage("File URL is required");
+      setNotificationMessage("URL فایل الزامی است");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -967,7 +967,7 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificationMessage("Advertisement added");
+        setNotificationMessage("تبلیغ افزوده شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
@@ -987,14 +987,14 @@ export default function DashboardPage() {
         setAdvertisementUploadMethod("upload");
         loadAdvertisements();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to add advertisement"}`);
+        setNotificationMessage(`خطا: ${data.error || "افزودن تبلیغ ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error adding advertisement:", error);
-      setNotificationMessage("Failed to add advertisement");
+      setNotificationMessage("افزودن تبلیغ ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -1003,7 +1003,7 @@ export default function DashboardPage() {
 
   const handleUpdateAdvertisement = async (advertisementId: number) => {
     if (advertisementUploadMethod === "url" && !advertisementFormData.fileUrl) {
-      setNotificationMessage("File URL is required");
+      setNotificationMessage("URL فایل الزامی است");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -1034,7 +1034,7 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificationMessage("Advertisement updated");
+        setNotificationMessage("تبلیغ به‌روزرسانی شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
@@ -1054,14 +1054,14 @@ export default function DashboardPage() {
         setAdvertisementUploadMethod("upload");
         loadAdvertisements();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to update"}`);
+        setNotificationMessage(`خطا: ${data.error || "به‌روزرسانی ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error updating advertisement:", error);
-      setNotificationMessage("Failed to update");
+      setNotificationMessage("به‌روزرسانی ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -1069,7 +1069,7 @@ export default function DashboardPage() {
   };
 
   const handleDeleteAdvertisement = async (advertisementId: number) => {
-    if (!confirm("Delete this advertisement?")) {
+    if (!confirm("این تبلیغ حذف شود؟")) {
       return;
     }
 
@@ -1081,20 +1081,20 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificationMessage("Advertisement deleted");
+        setNotificationMessage("تبلیغ حذف شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
         loadAdvertisements();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to delete"}`);
+        setNotificationMessage(`خطا: ${data.error || "حذف ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error deleting advertisement:", error);
-      setNotificationMessage("Failed to delete");
+      setNotificationMessage("حذف ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -1114,20 +1114,20 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificationMessage(`Advertisement ${!isActive ? "enabled" : "disabled"}`);
+        setNotificationMessage(`تبلیغ ${!isActive ? "فعال شد" : "غیرفعال شد"}`);
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
         loadAdvertisements();
       } else {
-        setNotificationMessage(`Error: ${data.error || "Failed to update"}`);
+        setNotificationMessage(`خطا: ${data.error || "به‌روزرسانی ناموفق بود"}`);
         setNotificationType("error");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 5000);
       }
     } catch (error) {
       console.error("Error toggling advertisement:", error);
-      setNotificationMessage("Failed to update");
+      setNotificationMessage("به‌روزرسانی ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -1277,7 +1277,7 @@ export default function DashboardPage() {
         setDraggedAdId(null);
         await loadAdvertisements();
         
-        setNotificationMessage("Advertisement moved and reordered successfully");
+        setNotificationMessage("تبلیغ با موفقیت جابجا و مرتب شد");
         setNotificationType("success");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
@@ -1342,13 +1342,13 @@ export default function DashboardPage() {
       await loadAdvertisements();
       console.log('Advertisements reloaded');
       
-      setNotificationMessage("Display order updated successfully");
+      setNotificationMessage("ترتیب نمایش با موفقیت به‌روزرسانی شد");
       setNotificationType("success");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 3000);
     } catch (error) {
       console.error("Error updating display order:", error);
-      setNotificationMessage("Failed to update order");
+      setNotificationMessage("به‌روزرسانی ترتیب ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -1434,13 +1434,13 @@ export default function DashboardPage() {
       setDraggedAgentId(null);
       await loadAgents();
       
-      setNotificationMessage("Agents order updated successfully");
+      setNotificationMessage("ترتیب نمایندگان با موفقیت به‌روزرسانی شد");
       setNotificationType("success");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 3000);
     } catch (error) {
       console.error("Error updating agents order:", error);
-      setNotificationMessage("Failed to update order");
+      setNotificationMessage("به‌روزرسانی ترتیب ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -1526,13 +1526,13 @@ export default function DashboardPage() {
       setDraggedAdminId(null);
       await loadAdmins();
       
-      setNotificationMessage("Admins order updated successfully");
+      setNotificationMessage("ترتیب مدیران با موفقیت به‌روزرسانی شد");
       setNotificationType("success");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 3000);
     } catch (error) {
       console.error("Error updating admins order:", error);
-      setNotificationMessage("Failed to update order");
+      setNotificationMessage("به‌روزرسانی ترتیب ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -1618,13 +1618,13 @@ export default function DashboardPage() {
       setDraggedBannerId(null);
       await loadBanners();
       
-      setNotificationMessage("Banners order updated successfully");
+      setNotificationMessage("ترتیب بنرها با موفقیت به‌روزرسانی شد");
       setNotificationType("success");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 3000);
     } catch (error) {
       console.error("Error updating banners order:", error);
-      setNotificationMessage("Failed to update order");
+      setNotificationMessage("به‌روزرسانی ترتیب ناموفق بود");
       setNotificationType("error");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -1637,7 +1637,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 4rem)' }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
-          <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">Loading...</p>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">در حال بارگذاری...</p>
         </div>
       </div>
     );
@@ -1649,7 +1649,7 @@ export default function DashboardPage() {
         {/* Minimal Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-200">Dashboard</h1>
+            <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-200">داشبورد</h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {currentAdmin.username}
             </p>
@@ -1661,7 +1661,7 @@ export default function DashboardPage() {
         {deployingAgentId && (
           <div className="mb-6 bg-slate-900 dark:bg-slate-950 rounded-lg border border-slate-700 overflow-hidden">
             <div className="p-3 border-b border-slate-700 bg-slate-800 flex items-center justify-between">
-              <h3 className="text-xs font-semibold text-slate-200">Deployment Logs</h3>
+              <h3 className="text-xs font-semibold text-slate-200">لاگ‌های استقرار</h3>
               <button
                 onClick={() => {
                   setDeployingAgentId(null);
@@ -1674,7 +1674,7 @@ export default function DashboardPage() {
             </div>
             <div className="p-3 max-h-64 overflow-y-auto font-mono text-xs bg-slate-950">
               {deploymentLogs.length === 0 ? (
-                <div className="text-slate-400">Waiting for logs...</div>
+                <div className="text-slate-400">در انتظار لاگ‌ها...</div>
               ) : (
                 <div className="space-y-1">
                   {deploymentLogs.map((log, index) => (
@@ -1711,7 +1711,7 @@ export default function DashboardPage() {
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                Agents ({agents.length})
+                نمایندگان ({agents.length})
               </button>
               <button
                 onClick={() => setActiveTab("admins")}
@@ -1721,7 +1721,7 @@ export default function DashboardPage() {
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                Admins ({admins.length})
+                مدیران ({admins.length})
               </button>
               <button
                 onClick={() => setActiveTab("banners")}
@@ -1731,7 +1731,7 @@ export default function DashboardPage() {
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                Banners ({banners.length})
+                بنرها ({banners.length})
               </button>
               <button
                 onClick={() => setActiveTab("advertisements")}
@@ -1741,7 +1741,7 @@ export default function DashboardPage() {
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                Advertisements ({advertisements.length})
+                تبلیغات ({advertisements.length})
               </button>
               <button
                 onClick={() => setActiveTab("site-identity")}
@@ -1751,7 +1751,7 @@ export default function DashboardPage() {
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                Site Identity
+                هویت سایت
               </button>
             </div>
           </div>
@@ -1764,31 +1764,31 @@ export default function DashboardPage() {
                   onClick={() => setShowInstallForm(!showInstallForm)}
                   className="px-3 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
                 >
-                  {showInstallForm ? "Cancel" : "Deploy"}
+                  {showInstallForm ? "لغو" : "استقرار"}
                 </button>
               </div>
 
               {showInstallForm && (
                 <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-md border border-slate-200 dark:border-slate-600">
-                  <h3 className="text-xs font-semibold mb-3 text-slate-800 dark:text-slate-200">Deploy Agent</h3>
+                  <h3 className="text-xs font-semibold mb-3 text-slate-800 dark:text-slate-200">استقرار نماینده</h3>
                   <form onSubmit={handleInstall} className="space-y-3">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          Agent Name *
+                          نام نماینده *
                         </label>
                         <input
                           type="text"
                           required
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          placeholder="My Agent"
+                          placeholder="نماینده من"
                           className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                         />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          Server IP *
+                          IP سرور *
                         </label>
                         <input
                           type="text"
@@ -1801,7 +1801,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          Username *
+                          نام کاربری *
                         </label>
                         <input
                           type="text"
@@ -1826,7 +1826,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          Repository URL *
+                          URL مخزن *
                         </label>
                         <input
                           type="url"
@@ -1839,7 +1839,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          Port
+                          پورت
                         </label>
                         <input
                           type="number"
@@ -1856,7 +1856,7 @@ export default function DashboardPage() {
                         disabled={loading}
                         className="px-4 py-1.5 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors disabled:opacity-50"
                       >
-                        {loading ? "Deploying..." : "Deploy"}
+                        {loading ? "در حال استقرار..." : "استقرار"}
                       </button>
                     </div>
                   </form>
@@ -1865,7 +1865,7 @@ export default function DashboardPage() {
 
               {agents.length === 0 ? (
                 <div className="text-center py-8 text-sm text-slate-500 dark:text-slate-400">
-                  No agents deployed
+                  هیچ نماینده‌ای استقرار نیافته است
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -1873,11 +1873,11 @@ export default function DashboardPage() {
                     <thead>
                       <tr className="border-b border-slate-200 dark:border-slate-700">
                         <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 w-8">↕</th>
-                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Status</th>
-                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Name</th>
-                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Server IP</th>
-                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Location</th>
-                        <th className="text-right py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">Actions</th>
+                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">وضعیت</th>
+                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">نام</th>
+                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">IP سرور</th>
+                        <th className="text-left py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">موقعیت</th>
+                        <th className="text-right py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400">عملیات</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1914,14 +1914,14 @@ export default function DashboardPage() {
                                   onClick={() => handleEnable(agent.id)}
                                   className="px-2 py-1 text-xs font-medium bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
                                 >
-                                  Show
+                                  نمایش
                                 </button>
                               ) : (
                                 <button
                                   onClick={() => handleDisable(agent.id)}
                                   className="px-2 py-1 text-xs font-medium bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
                                 >
-                                  Hide
+                                  مخفی
                                 </button>
                               )}
                               <button
@@ -1958,17 +1958,17 @@ export default function DashboardPage() {
                   }}
                   className="px-3 py-1.5 text-xs font-medium bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
                 >
-                  {showAddAdminForm ? "Cancel" : "+ Add Admin"}
+                  {showAddAdminForm ? "لغو" : "+ افزودن مدیر"}
                 </button>
               </div>
 
               {showAddAdminForm && (
                 <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-md border border-slate-200 dark:border-slate-600">
-                  <h3 className="text-xs font-semibold mb-3 text-slate-800 dark:text-slate-200">Add Admin</h3>
+                  <h3 className="text-xs font-semibold mb-3 text-slate-800 dark:text-slate-200">افزودن مدیر</h3>
                   <form onSubmit={handleAddAdmin} className="space-y-3">
                     <div>
                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                        Username *
+                        نام کاربری *
                       </label>
                       <input
                         type="text"
@@ -1993,7 +1993,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                          Confirm *
+                          تأیید *
                         </label>
                         <input
                           type="password"
@@ -2141,7 +2141,7 @@ export default function DashboardPage() {
                         required
                         value={bannerFormData.text}
                         onChange={(e) => setBannerFormData({ ...bannerFormData, text: e.target.value })}
-                        placeholder="Enter banner text..."
+                        placeholder="متن بنر را وارد کنید..."
                         rows={3}
                         className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                       />
@@ -2259,7 +2259,7 @@ export default function DashboardPage() {
                         className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                       />
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        If set, the entire banner text will be clickable. Leave empty to use partial links below.
+                        در صورت تنظیم، کل متن بنر قابل کلیک خواهد بود. خالی بگذارید تا از لینک‌های جزئی زیر استفاده شود.
                       </p>
                     </div>
 
@@ -2283,7 +2283,7 @@ export default function DashboardPage() {
                                     newLinks[index].text = e.target.value;
                                     setBannerFormData({ ...bannerFormData, partialLinks: newLinks });
                                   }}
-                                  placeholder="Text to link (must exist in banner text)"
+                                  placeholder="متن برای لینک (باید در متن بنر وجود داشته باشد)"
                                   className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                                 />
                               </div>
@@ -2396,7 +2396,7 @@ export default function DashboardPage() {
                           }}
                           className="px-3 py-1.5 text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                         >
-                          Cancel
+                          لغو
                         </button>
                       )}
                       <button
@@ -2552,7 +2552,7 @@ export default function DashboardPage() {
                         type="text"
                         value={advertisementFormData.title}
                         onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, title: e.target.value })}
-                        placeholder="Advertisement title"
+                        placeholder="عنوان تبلیغ"
                         className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                       />
                     </div>
@@ -2669,7 +2669,7 @@ export default function DashboardPage() {
                         type="text"
                         value={advertisementFormData.altText}
                         onChange={(e) => setAdvertisementFormData({ ...advertisementFormData, altText: e.target.value })}
-                        placeholder="Alternative text for accessibility"
+                        placeholder="متن جایگزین برای دسترسی‌پذیری"
                         className="w-full px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                       />
                     </div>
@@ -2708,7 +2708,7 @@ export default function DashboardPage() {
                           }}
                           className="px-3 py-1.5 text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                         >
-                          Cancel
+                          لغو
                         </button>
                       )}
                       <button
@@ -3012,7 +3012,7 @@ export default function DashboardPage() {
                         required
                         value={siteIdentity.site_title}
                         onChange={(e) => setSiteIdentity({ ...siteIdentity, site_title: e.target.value })}
-                        placeholder="Network Monitoring & Diagnostics"
+                        placeholder="نظارت و تشخیص شبکه"
                         className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                       />
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -3028,7 +3028,7 @@ export default function DashboardPage() {
                         required
                         value={siteIdentity.site_subtitle}
                         onChange={(e) => setSiteIdentity({ ...siteIdentity, site_subtitle: e.target.value })}
-                        placeholder="Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide"
+                        placeholder="بررسی در دسترس بودن وب‌سایت‌ها، سرورها، میزبان‌ها و آدرس‌های IP از مکان‌های مختلف در سراسر جهان"
                         rows={3}
                         className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 resize-none"
                       />
@@ -3047,36 +3047,34 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                        متن لوگو (Logo Text) *
+                        عنوان (Title) *
                       </label>
                       <input
                         type="text"
                         required
                         value={siteIdentity.logo_text}
                         onChange={(e) => setSiteIdentity({ ...siteIdentity, logo_text: e.target.value })}
-                        placeholder="Check Host"
+                        placeholder="پیشداد"
                         className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                       />
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        متن کنار لوگو در نوار بالای صفحه
+                        عنوان اصلی که در نوار بالای صفحه نمایش داده می‌شود
                       </p>
                     </div>
 
                     <div>
                       <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                        حروف اولیه لوگو (Logo Initials) *
+                        شعار / زیر عنوان (Slogan / Subtitle)
                       </label>
                       <input
                         type="text"
-                        required
-                        maxLength={5}
-                        value={siteIdentity.logo_initials}
-                        onChange={(e) => setSiteIdentity({ ...siteIdentity, logo_initials: e.target.value.toUpperCase() })}
-                        placeholder="CH"
+                        value={siteIdentity.logo_slogan}
+                        onChange={(e) => setSiteIdentity({ ...siteIdentity, logo_slogan: e.target.value })}
+                        placeholder="شعار یا زیر عنوان"
                         className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                       />
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        حروف داخل آیکون لوگو (حداکثر 5 کاراکتر) - فقط در صورت عدم وجود تصویر لوگو نمایش داده می‌شود
+                        شعار یا زیر عنوان که در زیر عنوان اصلی نمایش داده می‌شود
                       </p>
                     </div>
                   </div>

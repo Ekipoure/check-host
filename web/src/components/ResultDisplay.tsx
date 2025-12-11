@@ -87,12 +87,12 @@ function processHTTPResults(httpResults: any[][]): {
   ip: string | null;
 } {
   if (!httpResults || !Array.isArray(httpResults) || httpResults.length === 0) {
-    return { success: false, time: 0, statusCode: null, message: "No data", ip: null };
+    return { success: false, time: 0, statusCode: null, message: "داده‌ای وجود ندارد", ip: null };
   }
 
   const allResults = httpResults.flat().filter((r: any) => r !== null && r !== undefined);
   if (allResults.length === 0) {
-    return { success: false, time: 0, statusCode: null, message: "No data", ip: null };
+    return { success: false, time: 0, statusCode: null, message: "داده‌ای وجود ندارد", ip: null };
   }
 
   const firstResult = allResults[0];
@@ -100,7 +100,7 @@ function processHTTPResults(httpResults: any[][]): {
     success: firstResult.success === 1 || firstResult.success === true,
     time: firstResult.time || 0,
     statusCode: firstResult.statusCode || null,
-    message: firstResult.message || "Unknown",
+    message: firstResult.message || "نامشخص",
     ip: firstResult.ip || null,
   };
 }
@@ -114,7 +114,7 @@ function processPortResults(portResults: any[]): {
   note: string | null;
 } {
   if (!portResults || !Array.isArray(portResults) || portResults.length === 0) {
-    return { success: false, time: null, address: null, error: "No data", note: null };
+    return { success: false, time: null, address: null, error: "داده‌ای وجود ندارد", note: null };
   }
 
   const firstResult = portResults[0];
@@ -167,7 +167,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span className="ml-3 text-sm sm:text-base text-slate-600 dark:text-slate-400">Processing...</span>
+            <span className="ml-3 text-sm sm:text-base text-slate-600 dark:text-slate-400">در حال پردازش...</span>
           </div>
         </div>
       </div>
@@ -186,7 +186,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
             <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400 mr-2 sm:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h2 className="text-lg sm:text-xl font-bold text-red-800 dark:text-red-200">Error</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-red-800 dark:text-red-200">خطا</h2>
           </div>
           <p className="mt-2 text-sm sm:text-base text-red-700 dark:text-red-300 break-words">{result.error}</p>
         </div>
@@ -214,7 +214,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
     return (
       <div className="max-w-6xl mx-auto mt-6 sm:mt-8 px-2 sm:px-4">
         <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700">
-          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 text-center">No results available</p>
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 text-center">نتیجه‌ای در دسترس نیست</p>
         </div>
       </div>
     );
@@ -240,7 +240,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
       return (
         <div className="max-w-6xl mx-auto mt-6 sm:mt-8 px-2 sm:px-4">
           <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700">
-            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 text-center">No IP information available</p>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 text-center">اطلاعات IP در دسترس نیست</p>
           </div>
         </div>
       );
@@ -266,25 +266,25 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
                       <div className="space-y-1.5 sm:space-y-2">
                         {info.ip && (
                           <div>
-                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">IP Address</div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">آدرس IP</div>
                             <div className="text-xs sm:text-sm font-mono text-slate-900 dark:text-slate-100 break-all">{info.ip}</div>
                           </div>
                         )}
                         {info.country && (
                           <div>
-                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Country</div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">کشور</div>
                             <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.country} {info.countryCode ? `(${info.countryCode})` : ''}</div>
                           </div>
                         )}
                         {info.city && (
                           <div>
-                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">City</div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">شهر</div>
                             <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.city}</div>
                           </div>
                         )}
                         {info.region && (
                           <div>
-                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Region</div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">منطقه</div>
                             <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.region}</div>
                           </div>
                         )}
@@ -302,13 +302,13 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
                         )}
                         {info.timezone && (
                           <div>
-                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Timezone</div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">منطقه زمانی</div>
                             <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.timezone}</div>
                           </div>
                         )}
                         {info.source && (
                           <div>
-                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Source</div>
+                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">منبع</div>
                             <div className="text-xs sm:text-sm text-slate-900 dark:text-slate-100 break-words">{info.source}</div>
                           </div>
                         )}
@@ -331,7 +331,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
                           <svg className="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                           </svg>
-                          <p className="text-sm">Location data not available</p>
+                          <p className="text-sm">اطلاعات موقعیت در دسترس نیست</p>
                         </div>
                       </div>
                     )}
@@ -351,7 +351,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
   let tableHeaders: string[] = [];
 
   if (checkType === 'ping') {
-    tableHeaders = ['Location', 'Result', 'rtt min / avg / max', 'IP address'];
+    tableHeaders = ['موقعیت', 'نتیجه', 'حداقل / میانگین / حداکثر تاخیر', 'آدرس IP'];
     tableData = results
       .filter((item: any) => {
         const hasData = item.agent && item.result && item.result.result;
@@ -385,7 +385,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         if (agent.agentCity) locationParts.push(agent.agentCity);
         const location = locationParts.length > 0 
           ? locationParts.join(", ") 
-          : (agent.name || agent.agentLocation || "Unknown");
+          : (agent.name || agent.agentLocation || "نامشخص");
         
         const countryCode = agent.agentCountryCode 
           ? agent.agentCountryCode.toUpperCase()
@@ -441,7 +441,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         };
       });
   } else if (checkType === 'http') {
-    tableHeaders = ['Location', 'Result', 'Time', 'Status code', 'IP address'];
+    tableHeaders = ['موقعیت', 'نتیجه', 'زمان', 'کد وضعیت', 'آدرس IP'];
     tableData = results
       .filter((item: any) => item.agent && item.result)
       .map((item: any) => {
@@ -458,7 +458,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         if (agent.agentCity) locationParts.push(agent.agentCity);
         const location = locationParts.length > 0 
           ? locationParts.join(", ") 
-          : (agent.name || agent.agentLocation || "Unknown");
+          : (agent.name || agent.agentLocation || "نامشخص");
         
         const countryCode = agent.agentCountryCode 
           ? agent.agentCountryCode.toUpperCase()
@@ -470,14 +470,14 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
           location,
           countryCode,
           countryEmoji: agent.countryEmoji,
-          result: httpData.success ? "✓ OK" : "✗ Error",
+          result: httpData.success ? "✓ موفق" : "✗ خطا",
           time: httpData.time > 0 ? `${(httpData.time * 1000).toFixed(0)} ms` : "—",
           statusCode: httpData.statusCode || "—",
           ip: httpData.ip || "—",
         };
       });
   } else if (checkType === 'tcp' || checkType === 'udp') {
-    tableHeaders = ['Location', 'Result', 'Time', 'IP address'];
+    tableHeaders = ['موقعیت', 'نتیجه', 'زمان', 'آدرس IP'];
     tableData = results
       .filter((item: any) => item.agent && item.result)
       .map((item: any) => {
@@ -489,7 +489,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         if (agent.agentCity) locationParts.push(agent.agentCity);
         const location = locationParts.length > 0 
           ? locationParts.join(", ") 
-          : (agent.name || agent.agentLocation || "Unknown");
+          : (agent.name || agent.agentLocation || "نامشخص");
         
         const countryCode = agent.agentCountryCode 
           ? agent.agentCountryCode.toUpperCase()
@@ -501,13 +501,13 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
           location,
           countryCode,
           countryEmoji: agent.countryEmoji,
-          result: portData.success ? "✓ OK" : (portData.error || "✗ Error"),
+          result: portData.success ? "✓ موفق" : (portData.error || "✗ خطا"),
           time: portData.time ? `${(portData.time * 1000).toFixed(0)} ms` : "—",
           ip: portData.address || "—",
         };
       });
   } else if (checkType === 'dns') {
-    tableHeaders = ['Location', 'A records', 'AAAA records', 'TTL'];
+    tableHeaders = ['موقعیت', 'رکوردهای A', 'رکوردهای AAAA', 'TTL'];
     tableData = results
       .filter((item: any) => item.agent && item.result)
       .map((item: any) => {
@@ -519,7 +519,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
         if (agent.agentCity) locationParts.push(agent.agentCity);
         const location = locationParts.length > 0 
           ? locationParts.join(", ") 
-          : (agent.name || agent.agentLocation || "Unknown");
+          : (agent.name || agent.agentLocation || "نامشخص");
         
         const countryCode = agent.agentCountryCode 
           ? agent.agentCountryCode.toUpperCase()
@@ -543,9 +543,9 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
       <div className="max-w-6xl mx-auto mt-6 sm:mt-8 px-2 sm:px-4">
         <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700">
           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 text-center">
-            No results available
+            نتیجه‌ای در دسترس نیست
             <span className="block text-xs mt-2 text-slate-500">
-              Check type: {checkType}
+              نوع بررسی: {checkType}
             </span>
           </p>
         </div>
@@ -559,7 +559,7 @@ const ResultDisplay: FC<ResultDisplayProps> = ({ result, loading }) => {
       <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Results
+            نتایج
           </h2>
         </div>
         

@@ -60,7 +60,7 @@ export default function CheckForm({ title, description, placeholder, onSubmit, o
             setLoading(true);
             setError("");
             onSubmitRef.current(currentStoredHost).catch((err) => {
-              setError(err instanceof Error ? err.message : "An error occurred");
+              setError(err instanceof Error ? err.message : "خطایی رخ داد");
             }).finally(() => {
               setLoading(false);
             });
@@ -85,7 +85,7 @@ export default function CheckForm({ title, description, placeholder, onSubmit, o
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!host.trim()) {
-      setError("Please enter a host or IP address");
+      setError("لطفاً یک میزبان یا آدرس IP وارد کنید");
       return;
     }
 
@@ -94,7 +94,7 @@ export default function CheckForm({ title, description, placeholder, onSubmit, o
     try {
       await onSubmit(host.trim());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : "خطایی رخ داد");
     } finally {
       setLoading(false);
     }
@@ -114,7 +114,7 @@ export default function CheckForm({ title, description, placeholder, onSubmit, o
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div>
             <label htmlFor="host" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
-              Host or IP Address
+              میزبان یا آدرس IP
             </label>
             <div className="flex flex-col sm:flex-row gap-2">
               <input
@@ -137,11 +137,11 @@ export default function CheckForm({ title, description, placeholder, onSubmit, o
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span className="hidden sm:inline">Checking...</span>
+                    <span className="hidden sm:inline">در حال بررسی...</span>
                     <span className="sm:hidden">...</span>
                   </span>
                 ) : (
-                  "Check"
+                  "بررسی"
                 )}
               </button>
             </div>

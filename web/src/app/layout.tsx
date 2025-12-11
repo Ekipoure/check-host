@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Vazirmatn } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import BannerDisplay from "@/components/BannerDisplay";
 import { getBanners, getSiteIdentity } from "@/components/BannerServer";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+const vazirmatn = Vazirmatn({
+  subsets: ["latin", "arabic"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-vazirmatn",
+  display: "swap",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -27,8 +29,8 @@ export default async function RootLayout({
   const banners = await getBanners();
 
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} antialiased bg-white dark:bg-slate-900`}>
+    <html lang="fa" dir="rtl" className={`${vazirmatn.variable} scroll-smooth`}>
+      <body className="antialiased bg-white dark:bg-slate-900 font-sans">
         <BannerDisplay initialBanners={banners} />
         <Navigation />
         <main>

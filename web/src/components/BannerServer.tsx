@@ -45,7 +45,7 @@ interface SiteIdentity {
   site_title: string;
   site_subtitle: string;
   logo_text: string;
-  logo_initials: string;
+  logo_slogan: string;
   meta_title: string;
   meta_description: string;
   logo_url: string | null;
@@ -65,7 +65,7 @@ export async function getSiteIdentity(): Promise<SiteIdentity> {
         site_title: "Network Monitoring & Diagnostics",
         site_subtitle: "Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide",
         logo_text: "Check Host",
-        logo_initials: "CH",
+        logo_slogan: "",
         meta_title: "Check Host - Network Monitoring & Diagnostics",
         meta_description: "Online tool for checking availability of websites, servers, hosts and IP addresses",
         logo_url: null,
@@ -82,7 +82,7 @@ export async function getSiteIdentity(): Promise<SiteIdentity> {
       site_title: "Network Monitoring & Diagnostics",
       site_subtitle: "Check availability of websites, servers, hosts and IP addresses from multiple locations worldwide",
       logo_text: "Check Host",
-      logo_initials: "CH",
+      logo_slogan: "",
       meta_title: "Check Host - Network Monitoring & Diagnostics",
       meta_description: "Online tool for checking availability of websites, servers, hosts and IP addresses",
       logo_url: null,

@@ -42,10 +42,10 @@ export default function LoginPage() {
         router.push("/dashboard");
         router.refresh();
       } else {
-        setError(data.error || "Login failed");
+        setError(data.error || "ورود ناموفق بود");
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError("خطایی رخ داد. لطفاً دوباره تلاش کنید.");
     } finally {
       setLoading(false);
     }
@@ -61,10 +61,10 @@ export default function LoginPage() {
               <span className="text-white text-2xl font-bold">🔐</span>
             </div>
             <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Admin Login
+              ورود مدیر
             </h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              Enter your credentials to access the dashboard
+              برای دسترسی به داشبورد، اطلاعات خود را وارد کنید
             </p>
           </div>
 
@@ -82,7 +82,7 @@ export default function LoginPage() {
                 htmlFor="username"
                 className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
               >
-                Username
+                نام کاربری
               </label>
               <input
                 id="username"
@@ -91,7 +91,7 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 transition-all"
-                placeholder="Enter your username"
+                placeholder="نام کاربری خود را وارد کنید"
                 autoComplete="username"
               />
             </div>
@@ -101,7 +101,7 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
               >
-                Password
+                رمز عبور
               </label>
               <div className="relative">
                 <input
@@ -111,7 +111,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 pr-12 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 transition-all"
-                  placeholder="Enter your password"
+                  placeholder="رمز عبور خود را وارد کنید"
                   autoComplete="current-password"
                 />
                 <button
@@ -151,10 +151,10 @@ export default function LoginPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Logging in...
+                  در حال ورود...
                 </span>
               ) : (
-                "Sign In"
+                "ورود"
               )}
             </button>
           </form>
@@ -162,13 +162,13 @@ export default function LoginPage() {
           {/* Default Credentials Info */}
           <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <p className="text-xs text-blue-800 dark:text-blue-300 font-medium mb-1">
-              💡 Default Credentials:
+              💡 اطلاعات ورود پیش‌فرض:
             </p>
             <p className="text-xs text-blue-700 dark:text-blue-400">
-              Username: <strong>admin</strong> | Password: <strong>admin123</strong>
+              نام کاربری: <strong>admin</strong> | رمز عبور: <strong>admin123</strong>
             </p>
             <p className="text-xs text-blue-600 dark:text-blue-500 mt-1">
-              Please change the default password after first login!
+              لطفاً پس از اولین ورود، رمز عبور پیش‌فرض را تغییر دهید!
             </p>
           </div>
         </div>

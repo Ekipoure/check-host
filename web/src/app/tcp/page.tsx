@@ -17,13 +17,13 @@ export default function TCPPage() {
       const response = await fetch(`/api/tcp?host=${encodeURIComponent(host)}&port=${port}`);
       const data = await response.json();
       if (!response.ok) {
-        setResult({ error: data.error || "Failed to check TCP port" });
+        setResult({ error: data.error || "بررسی پورت TCP با خطا مواجه شد" });
       } else {
         setResult(data);
       }
     } catch (error) {
       console.error("Error checking TCP port:", error);
-      setResult({ error: "Failed to check TCP port" });
+      setResult({ error: "بررسی پورت TCP با خطا مواجه شد" });
     } finally {
       setLoading(false);
     }
@@ -32,7 +32,7 @@ export default function TCPPage() {
   const options = (
     <div>
       <label htmlFor="port" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
-        Port Number
+        شماره پورت
       </label>
       <input
         id="port"
@@ -50,9 +50,9 @@ export default function TCPPage() {
   return (
     <div className="min-h-screen py-6 sm:py-8 md:py-12 px-2 sm:px-4 md:px-6 lg:px-8">
       <CheckForm
-        title="TCP Port Check"
-        description="Check the possibility of a TCP connection to host's specified port"
-        placeholder="Enter hostname or IP address (e.g., google.com or 8.8.8.8)"
+        title="بررسی پورت TCP"
+        description="بررسی امکان اتصال TCP به پورت مشخص شده میزبان"
+        placeholder="نام میزبان یا آدرس IP را وارد کنید (مثال: google.com یا 8.8.8.8)"
         icon="🔌"
         onSubmit={handleCheck}
         options={options}

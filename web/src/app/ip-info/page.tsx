@@ -19,13 +19,13 @@ export default function IPInfoPage() {
       const response = await fetch(`/api/ip-info?host=${encodeURIComponent(host)}`);
       const data = await response.json();
       if (!response.ok) {
-        setResult({ error: data.error || "Failed to fetch IP information" });
+        setResult({ error: data.error || "دریافت اطلاعات IP با خطا مواجه شد" });
       } else {
         setResult(data);
       }
     } catch (error) {
       console.error("Error checking IP info:", error);
-      setResult({ error: "Failed to fetch IP information" });
+      setResult({ error: "دریافت اطلاعات IP با خطا مواجه شد" });
     } finally {
       setLoading(false);
     }
@@ -41,9 +41,9 @@ export default function IPInfoPage() {
   return (
     <div className="min-h-screen py-6 sm:py-8 md:py-12 px-2 sm:px-4 md:px-6 lg:px-8">
       <CheckForm
-        title="IP Information"
-        description="Get geolocation data of IP address or hostname: country, region, city, timezone, ISP, and organization"
-        placeholder="Enter IP address or hostname (e.g., 8.8.8.8 or google.com)"
+        title="اطلاعات IP"
+        description="دریافت اطلاعات جغرافیایی آدرس IP یا نام میزبان: کشور، منطقه، شهر، منطقه زمانی، ISP و سازمان"
+        placeholder="آدرس IP یا نام میزبان را وارد کنید (مثال: 8.8.8.8 یا google.com)"
         icon="🌐"
         onSubmit={handleCheck}
       />
