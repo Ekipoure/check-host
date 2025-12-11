@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
   { name: "اطلاعات IP", href: "/ip-info", icon: "🌐" },
@@ -177,6 +178,7 @@ export default function Navigation() {
                 داشبورد
               </Link>
             )}
+            <ThemeToggle />
             {isAdmin && (
               <button
                 onClick={handleLogout}
@@ -234,6 +236,12 @@ export default function Navigation() {
                 داشبورد
               </Link>
             )}
+            <div className="px-3 sm:px-4 py-2.5 sm:py-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">تم نمایش:</span>
+                <ThemeToggle />
+              </div>
+            </div>
             {isAdmin && (
               <button
                 onClick={() => {

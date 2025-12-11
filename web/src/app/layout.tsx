@@ -4,6 +4,8 @@ import "./globals.css";
 import Navigation from "@/components/Navigation";
 import BannerDisplay from "@/components/BannerDisplay";
 import { getBanners, getSiteIdentity } from "@/components/BannerServer";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeScript } from "@/components/ThemeScript";
 
 const vazirmatn = Vazirmatn({
   subsets: ["latin", "arabic"],
@@ -29,13 +31,16 @@ export default async function RootLayout({
   const banners = await getBanners();
 
   return (
-    <html lang="fa" dir="rtl" className={`${vazirmatn.variable} scroll-smooth`}>
-      <body className="antialiased bg-white dark:bg-slate-900 font-sans">
-        <BannerDisplay initialBanners={banners} />
-        <Navigation />
-        <main>
-          {children}
-        </main>
+    <html lang="fa" dir="rtl" className={`${vazirmatn.variable} scroll-smooth`} suppressHydrationWarning>
+      <body className="antialiased bg-white text-slate-900 font-sans transition-colors duration-200 dark:bg-slate-900 dark:text-slate-100">
+        <ThemeScript />
+        <ThemeProvider>
+          <BannerDisplay initialBanners={banners} />
+          <Navigation />
+          <main>
+            {children}
+          </main>
+        </ThemeProvider>
       </body>
     </html>
   );

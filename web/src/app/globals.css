@@ -1,9 +1,7 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Enable dark mode with class strategy for Tailwind CSS v4 */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -12,11 +10,57 @@
   --font-mono: var(--font-vazirmatn), 'Vazirmatn', 'Vazir', 'Tahoma', 'Arial', monospace;
 }
 
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+/* Light theme (default) - explicitly set for light mode */
+:root,
+:root.light {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+/* Dark theme - apply to html element */
+html.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+:root.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+/* System theme fallback - only when no class is set */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light):not(.dark) {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+/* Ensure light theme is applied when light class is present */
+html.light {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* Important: In Tailwind CSS v4, when using class strategy, 
+   the absence of 'dark' class means light mode.
+   But we explicitly add 'light' class to ensure light mode is active.
+   This ensures that when 'light' class is present, dark mode is disabled. */
+html.light {
+  color-scheme: light;
+}
+
+/* Ensure that when light class is present, we're in light mode */
+html.light:not(.dark) {
+  color-scheme: light;
 }
 
 body {
@@ -41,6 +85,24 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Light theme scrollbar */
+.light ::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Dark theme scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #777;
 }
 
 /* Animations */
